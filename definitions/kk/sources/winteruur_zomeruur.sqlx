@@ -1,0 +1,7 @@
+config {
+type: "declaration",
+database:"boelpadel",
+schema: "kk_bifas",
+name: "winteruur_zomeruur",
+description: "Contains all masterdata regarding revenue groups from Clubplanner"
+}

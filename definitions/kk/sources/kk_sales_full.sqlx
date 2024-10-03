@@ -1,0 +1,7 @@
+config {
+type: "declaration",
+database:"boelpadel",
+schema: "kk_bifas",
+name: "kk_sales_full",
+description: "Contains all transactional sales data from Clubplanner"
+}
