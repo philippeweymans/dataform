@@ -1,0 +1,5 @@
+defaultProject: boelpadel
+defaultLocation: EU
+defaultDataset: dataform
+defaultAssertionDataset: dataform_assertions
+dataformCoreVersion: 3.0.0

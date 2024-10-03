@@ -1,0 +1,252 @@
+---- PREP QUERY TO LOAD THE TOTALS AS % BASIS
+  -- load only the listed combos
+with A as (
+  select 
+  cast(extract(quarter from A.createdon) as INT64) as quarter,
+  totalamount/quantity as price,
+  case
+  when WZ.season_if_date_is_between='WINTER' then
+    mod(timestamp_diff(DATETIME_ADD(CAST(FORMAT_DATE('%Y-%m-%d %H:%M:00', A.createdon) as DATETIME), INTERVAL -1 HOUR), cast('2000-01-01T00:00:00' as DATETIME), MINUTE),100)
+  when WZ.season_if_date_is_between is null then
+    mod(timestamp_diff(DATETIME_ADD(CAST(FORMAT_DATE('%Y-%m-%d %H:%M:00', A.createdon) as DATETIME), INTERVAL -2 HOUR), cast('2000-01-01T00:00:00' as DATETIME), MINUTE),100)
+  end as p1,
+  A.*
+    FROM `boelpadel.kk_bifas.kk_sales_full` A
+     left join `boelpadel.kk_bifas.winteruur_zomeruur` WZ on (A.YYYYMMDD >= WZ.start_winter_yyyymmdd AND A.YYYYMMDD < WZ.start_zomer_yyyymmdd)
+     JOIN `boelpadel.sheets_22.kk_payment_methods` B on (A.paymethodid=B.id)
+     left join `boelpadel.kk_bifas.kk_non_sales_full` E on (A.id=E.unique_id) 
+  where 1=1 
+  and A.yyyy in (2021,2022)
+  AND E.unique_id is null
+), B as 
+(
+SELECT   H3.yyyy,H3.quarter,H3.revenuegroupid, H3.paymethodid,H3.vat as vat1,H3.itemname,H3.type,H3.pct1000_from, H3.pct1000_to, H3.type_of_shuffle, H3.move_grp, H3.move_vat, H3.move_item, H3.price, C1.desc as revenuegroup,B.description as paymethod,            
+   sum(A.amount1) as pct_basis
+  FROM
+     `boelpadel.kk_bifas.omzet_shuffle_master` H3
+     left join A on   
+     case   
+        when H3.type='O_B_J_K_V_I_P_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy AND H3.quarter=A.quarter and H3.vat=A.vat1 and H3.itemname=A.itemname and cast(H3.price as FLOAT64)=cast(A.price as FLOAT64))      
+        when H3.type='O_B_J_K_V_I_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy AND H3.quarter=A.quarter and H3.vat=A.vat1 and H3.itemname=A.itemname )
+        when H3.type='O_B_J_K_V_P_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy AND H3.quarter=A.quarter and H3.vat=A.vat1 and cast(H3.price as FLOAT64)=cast(A.price as FLOAT64))
+        when H3.type='O_B_J_K_V_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy AND H3.quarter=A.quarter and H3.vat=A.vat1)
+        when H3.type='O_B_J_V_I_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy and H3.vat=A.vat1 and H3.itemname=A.itemname )
+        when H3.type='O_B_J_V_P_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy and H3.vat=A.vat1 and H3.price=A.price )
+        when H3.type='O_B_J_V_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy and H3.vat=A.vat1 )
+      end
+    LEFT JOIN `boelpadel.sheets_22.kk_revenue_groups` C1 on (A.revenuegroupid=C1.id)
+    LEFT JOIN `boelpadel.sheets_22.kk_payment_methods` B on (A.paymethodid=B.id)
+
+    group by H3.yyyy,H3.quarter,H3.revenuegroupid, H3.paymethodid,H3.vat,H3.itemname,H3.type,H3.pct1000_from, H3.pct1000_to, H3.type_of_shuffle, H3.move_grp, H3.move_vat, H3.move_item, H3.price, C1.desc, B.description
+  )
+select * from B
+
+
+
+
+
+---- BASED ON PREP QUERY- BUT REVERSED AS NEW TOTAL QUERY
+  -- IMPROVED SETUP BECAUSE ALIGNS ONE BASIS FOR ALL SHUFFLE LOGIC  
+  -- 1 basis `boelpadel.kk_bifas.kk_sales_full` A
+  -- no temp tables, e.g. `boelpadel.kk_bifas.acc_sales_2021_2022T3` A
+with A as (
+  select 
+  cast(extract(quarter from A.createdon) as INT64) as quarter,
+  totalamount/quantity as price,
+  case
+  when WZ.season_if_date_is_between='WINTER' then
+    mod(timestamp_diff(DATETIME_ADD(CAST(FORMAT_DATE('%Y-%m-%d %H:%M:00', A.createdon) as DATETIME), INTERVAL -1 HOUR), cast('2000-01-01T00:00:00' as DATETIME), MINUTE),100)
+  when WZ.season_if_date_is_between is null then
+    mod(timestamp_diff(DATETIME_ADD(CAST(FORMAT_DATE('%Y-%m-%d %H:%M:00', A.createdon) as DATETIME), INTERVAL -2 HOUR), cast('2000-01-01T00:00:00' as DATETIME), MINUTE),100)
+  end as p1,
+  A.*,
+  B.description as paymethod
+    FROM `boelpadel.kk_bifas.kk_sales_full` A
+     left join `boelpadel.kk_bifas.winteruur_zomeruur` WZ on (A.YYYYMMDD >= WZ.start_winter_yyyymmdd AND A.YYYYMMDD < WZ.start_zomer_yyyymmdd)
+     JOIN `boelpadel.sheets_22.kk_payment_methods` B on (A.paymethodid=B.id)
+     left join `boelpadel.kk_bifas.kk_non_sales_full` E on (A.id=E.unique_id) 
+  where 1=1 
+  and A.yyyy in (2021,2022)
+  -- and A.id=255283
+  AND E.unique_id is null
+)
+select 
+case
+when H3.quarter is not null then H3.quarter
+else -1 
+end as quarter_det,
+case
+when H3.vat is not null then H3.vat
+else -1 
+end as vat1_det,
+case
+when H3.price is not null then H3.price
+else -1 
+end as price_det,
+case
+when H3.itemname is not null then H3.itemname
+else 'nvt' 
+end as itemname_det,
+-- case
+-- when H3.quarter is not null then H3.quarter
+-- else A.quarter
+-- end as quarter,
+A.quarter,
+-- case
+-- when H3.price is not null then H3.price
+-- else A.price 
+-- end as price,
+A.price as price,
+case
+when H3.yyyy is not null then H3.pct1000_to
+else -1 
+end as pct1000_to,
+case
+when H3.yyyy is not null then H3.pct1000_from
+else -1 
+end as pct1000_from,
+A.amount1 as totaal_btw_incl, 
+-- case
+-- when H3.type_of_shuffle='delete' and H3.yyyy is not null and A.p1<=H3.pct1000_to and A.p1>=H3.pct1000_from then 0
+-- when H3.type_of_shuffle='move' and H3.yyyy is not null and A.p1<=H3.pct1000_to and A.p1>=H3.pct1000_from then 0
+-- else amount1 
+-- end as totaal_btw_incl_remaining,
+case
+when H3.type_of_shuffle='delete' and H3.yyyy is not null and A.p1<=H3.pct1000_to and A.p1>=H3.pct1000_from then 0
+else A.amount1
+end as totaal_btw_incl_remaining,
+case
+when H3.type_of_shuffle='delete' and H3.yyyy is not null and A.p1<=H3.pct1000_to and A.p1>=H3.pct1000_from then amount1
+else 0 
+end as totaal_btw_incl_shuffled_deleted,
+case
+when H3.type_of_shuffle='move' and H3.yyyy is not null and A.p1<=H3.pct1000_to and A.p1>=H3.pct1000_from then amount1
+else 0 
+end as totaal_btw_incl_shuffled_moved,
+case
+when H3.type_of_shuffle='move' and H3.yyyy is not null and A.p1<=H3.pct1000_to and A.p1>=H3.pct1000_from then 0
+when H3.type_of_shuffle='delete' and H3.yyyy is not null and A.p1<=H3.pct1000_to and A.p1>=H3.pct1000_from then 0
+else amount1
+end as totaal_btw_incl_untouched,
+case
+when H3.type_of_shuffle is not null then H3.type_of_shuffle
+else "nvt"
+end as type_of_shuffle,
+case
+when H3.type_of_shuffle='move' and H3.move_grp<>-1 and A.p1<=H3.pct1000_to and A.p1>=H3.pct1000_from then H3.move_grp
+when H3.type_of_shuffle='delete' and H3.move_grp<>-1 and A.p1<=H3.pct1000_to and A.p1>=H3.pct1000_from then H3.move_grp
+else cast(A.revenuegroupid as INT64)
+end as revenuegroupid_new,
+-- case
+-- when H3.type_of_shuffle='move' and H3.move_grp<>-1 then H3.move_grp
+-- else A.revenuegroupid
+-- end as revenuegroupid_new,
+A.revenuegroupid as revenuegroupid_orig,
+case
+when H3.type_of_shuffle='move' and H3.move_vat<>-1 and A.p1<=H3.pct1000_to and A.p1>=H3.pct1000_from then H3.move_vat
+when H3.type_of_shuffle='delete' and H3.move_vat<>-1 and A.p1<=H3.pct1000_to and A.p1>=H3.pct1000_from then -1
+else A.vat1
+end as vat1_new,
+-- case
+-- when H3.type_of_shuffle='move' and H3.move_vat<>-1 then H3.move_vat
+-- else A.vat1
+-- end as vat1_new,
+A.vat1 as vat1_orig,
+case
+when H3.type_of_shuffle='move' and H3.move_item<>'nvt' and A.p1<=H3.pct1000_to and A.p1>=H3.pct1000_from then H3.move_item
+when H3.type_of_shuffle='delete' and H3.move_item<>'nvt' and A.p1<=H3.pct1000_to and A.p1>=H3.pct1000_from then H3.move_item
+else A.itemname
+end as itemname_new,
+-- case
+-- when H3.move_item<>'nvt' then H3.move_item
+-- else A.itemname
+-- end as itemname_new,
+A.itemname as itemname_orig,
+C1.desc as revenuegroup_new,
+C2.desc as revenuegroup_orig,
+A.p1,A.id,A.yyyy,A.paymethodid, paymethod,
+ H3.move_grp 
+-- H3.type_of_shuffle,A.p1, H3.pct1000_to,pct1000_from 
+  FROM A
+  LEFT JOIN  `boelpadel.kk_bifas.omzet_shuffle_master` H3 ON  
+      case
+        when H3.type='O_B_J_K_V_I_P_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy AND H3.quarter=A.quarter and H3.vat=A.vat1 and H3.itemname=A.itemname and cast(H3.price as FLOAT64)=cast(A.price as FLOAT64))      
+        when H3.type='O_B_J_K_V_I_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy AND H3.quarter=A.quarter and H3.vat=A.vat1 and H3.itemname=A.itemname )
+        when H3.type='O_B_J_K_V_P_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy AND H3.quarter=A.quarter and H3.vat=A.vat1 and cast(H3.price as FLOAT64)=cast(A.price as FLOAT64))
+        when H3.type='O_B_J_K_V_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy AND H3.quarter=A.quarter and H3.vat=A.vat1)
+        when H3.type='O_B_J_V_I_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy and H3.vat=A.vat1 and H3.itemname=A.itemname )
+        when H3.type='O_B_J_V_P_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy and H3.vat=A.vat1 and H3.price=A.price )
+        when H3.type='O_B_J_V_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy and H3.vat=A.vat1 )
+      end
+  LEFT JOIN `boelpadel.sheets_22.kk_revenue_groups` C1 ON
+      case
+        when H3.type_of_shuffle IN ('move','delete') and H3.move_grp<>-1 and A.p1<=H3.pct1000_to and A.p1>=H3.pct1000_from then (H3.move_grp=C1.id)
+        else (A.revenuegroupid=C1.id)
+      end
+  LEFT JOIN `boelpadel.sheets_22.kk_revenue_groups` C2 ON (A.revenuegroupid=C2.id)
+
+
+
+
+
+
+
+
+---- query to link prices
+with A as (
+  select 
+  cast(extract(quarter from A.createdon) as INT64) as quarter,
+  totalamount/quantity as price,
+  A.*,
+  B.description as paymethod, C2.desc as rev_grp
+    FROM `boelpadel.kk_bifas.kk_sales_full` A
+     JOIN `boelpadel.sheets_22.kk_payment_methods` B on (A.paymethodid=B.id)
+     left join `boelpadel.kk_bifas.kk_non_sales_full` E on (A.id=E.unique_id) 
+     LEFT JOIN `boelpadel.sheets_22.kk_revenue_groups` C2 ON (A.revenuegroupid=C2.id)
+  where 1=1 
+  and A.yyyy in (2021,2022)
+  and B.description='Bancontact'
+  AND E.unique_id is null),
+  A0 as 
+  (select distinct price from A),
+  A1 as
+  (select price, vat1, rev_grp, sum(amount1) as total from A where rev_grp='Bar' group  by price, vat1, rev_grp),
+  A2 as
+  (select price, vat1, rev_grp, sum(amount1) as total from A where rev_grp='Lessen' group  by price, vat1, rev_grp),
+  A3 as
+  (select price, vat1, rev_grp, sum(amount1) as total from A where rev_grp='Voeding' group  by price, vat1, rev_grp),
+  A4 as
+  (select price, vat1, rev_grp, sum(amount1) as total from A where rev_grp='Boulder' group  by price, vat1, rev_grp),
+  A5 as
+  (select price, vat1, rev_grp, sum(amount1) as total from A where rev_grp='Versnapering' group  by price, vat1, rev_grp),
+  A6 as
+  (select price, vat1, rev_grp, sum(amount1) as total from A where rev_grp='Verkoop Klimmateriaal' group  by price, vat1, rev_grp),
+  A7 as
+  (select price, vat1, rev_grp, sum(amount1) as total from A where rev_grp='Verhuur Klimmateriaal' group  by price, vat1, rev_grp) ,
+  A8 as
+  (select price, vat1, rev_grp, sum(amount1) as total from A where rev_grp='Merchandise' group  by price, vat1, rev_grp)
+select A0.price,
+A1.rev_grp as rev_grp_Bar,	A1.vat1 as vat1_Bar,	A1.total as total_Bar,
+A2.rev_grp as rev_grp_Lessen,	A2.vat1 as vat1_Lessen,	A2.total as total_Lessen,
+A3.rev_grp as rev_grp_Voeding,	A3.vat1 as vat1_Voeding,	A3.total as total_Voeding,
+A4.rev_grp as rev_grp_Boulder,	A4.vat1 as vat1_Boulder,	A4.total as total_Boulder,
+A5.rev_grp as rev_grp_Versnapering,	A5.vat1 as vat1_Versnapering,	A5.total as total_Versnapering,
+A6.rev_grp as rev_grp_Verkoop_Klimmateriaal,	A6.vat1 as vat1_Verkoop_Klimmateriaal,	A6.total as total_Verkoop_Klimmateriaal,
+A7.rev_grp as rev_grp_Verhuur_Klimmateriaal,	A7.vat1 as vat1_Verhuur_Klimmateriaal,	A7.total as total_Verhuur_Klimmateriaal,
+A8.rev_grp as rev_grp_Merchandise,	A8.vat1 as vat1_Merchandise,	A8.total as total_Merchandise
+from A0
+left join A1 on (A0.price=A1.price)
+left join A2 on (A0.price=A2.price)
+left join A3 on (A0.price=A3.price)
+left join A4 on (A0.price=A4.price)
+left join A5 on (A0.price=A5.price)
+left join A6 on (A0.price=A6.price)
+left join A7 on (A0.price=A7.price)
+left join A8 on (A0.price=A8.price)
+
+
+
+
+
+
+
