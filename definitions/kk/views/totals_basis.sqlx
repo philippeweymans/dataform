@@ -1,6 +1,6 @@
 config {
 type: "view" ,
-description: "Preparatory query to present the totals per shuffle combo so that you can enter absolute figures to reshuffle (move/delete) without exceeding the max "
+description: "Preparatory query to present the totals per shuffle combo so that you can enter absolute figures to reshuffle (move/delete) without exceeding the max; \r\n was called boelpadel.kk_bifas.acc_sales_2021_2022v2 earlier"
 }
 
 -- load only the listed combos
