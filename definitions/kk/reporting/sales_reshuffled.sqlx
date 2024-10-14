@@ -7,7 +7,7 @@ config {
         price: "calculated price , by dividing totalamount by quantity "
     }
 }
-
+-- KOEKOE
   ---- BASED ON PREP QUERY- BUT REVERSED AS NEW TOTAL QUERY
   -- IMPROVED SETUP BECAUSE ALIGNS ONE BASIS FOR ALL SHUFFLE LOGIC
   -- 1 basis `boelpadel.kk_bifas.kk_sales_full` A
