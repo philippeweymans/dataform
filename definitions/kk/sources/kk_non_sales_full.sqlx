@@ -2,6 +2,6 @@ config {
 type: "declaration",
 database:"boelpadel",
 schema: "kk_bifas",
-name: "1 kk_non_sales_full",
+name: "kk_non_sales_full",
 description: "2KOEKOE Contains all sales ID's that are not considered actual sales; important to exclude from the sales & VAT representation"
 }
