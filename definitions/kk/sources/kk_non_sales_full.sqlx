@@ -3,5 +3,5 @@ type: "declaration",
 database:"boelpadel",
 schema: "kk_bifas",
 name: "kk_non_sales_full",
-description: "test 1 2KOEKOE CCContains all sales ID's that are not considered actual sales; important to exclude from the sales & VAT representation"
+description: "Contains all sales ID's that are not considered actual sales; important to exclude from the sales & VAT representation"
 }
