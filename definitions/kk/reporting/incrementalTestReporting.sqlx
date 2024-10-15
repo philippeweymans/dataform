@@ -1,7 +1,0 @@
--- config {
---     type: "table",
---     schema: "kk_bifas",
---     name: "assert_test_assertions",
---     description: "test assertions"
--- }
--- SELECT * FROM ${ref("test_assertions")} 

@@ -1,5 +1,5 @@
 config {
-    schema: "dev",    
+    schema: "kk_sales_increment",    
     type: "incremental",
     uniqueKey: ["Id"]
 }
@@ -9,7 +9,7 @@ SELECT
   parse_date('%d/%m/%Y',left(CreatedOn,10)) as CreatedOnDt,
   parse_datetime('%d/%m/%Y %H:%M:%S',CreatedOn) as CreatedOnDtTime
 FROM
-  `boelpadel.dev.test_bq_schema_from_json5`
+  `boelpadel.kk_sales_increment.kk_sales_new`
 CROSS JOIN
   UNNEST(recs) AS a
 
