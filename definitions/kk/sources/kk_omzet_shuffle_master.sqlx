@@ -1,0 +1,7 @@
+config {
+    type: "declaration",
+    database: "boelpadel",
+    schema: "kk_bifas",
+    name: "kk_omzet_shuffle_master",
+    description: "Contains all shuffle keys & reshuffle %'s (serves for cash creation, VAT optimization, cleansing,... Prepped in google sheets"
+}

@@ -2,6 +2,6 @@ config {
 type: "declaration",
 database:"boelpadel",
 schema: "kk_bifas",
-name: "kk_revenue_groups",
+name: "revenue_groups",
 description: "Contains all masterdata regarding revenue groups from Clubplanner"
 }

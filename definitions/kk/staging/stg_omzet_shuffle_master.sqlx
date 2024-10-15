@@ -1,8 +1,0 @@
-config {
-type: "view",
-schema: "staging",
-description: "Cleaned version of orders"
-}
-
-select *
-from ${ref("omzet_shuffle_master")} 
