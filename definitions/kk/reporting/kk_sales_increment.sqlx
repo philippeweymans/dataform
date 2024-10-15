@@ -2,7 +2,7 @@ config {
     type: "incremental",
     schema: "kk_sales_increment",
     uniqueKey: ["Id"],
-    tags: "tagTest"
+    tags: ["tagTest"]
 }
 
 SELECT
