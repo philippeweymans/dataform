@@ -37,7 +37,7 @@ with A as (
   B.description as paymethod
     FROM `boelpadel.kk_bifas.kk_sales_full` A
      left join `boelpadel.kk_bifas.winteruur_zomeruur` WZ on (A.YYYYMMDD >= WZ.start_winter_yyyymmdd AND A.YYYYMMDD < WZ.start_zomer_yyyymmdd)
-     JOIN `boelpadel.sheets_22.kk_payment_methods` B on (A.paymethodid=B.id)
+     JOIN `boelpadel.kk_bifas.payment_methods` B on (A.paymethodid=B.id)
      left join `boelpadel.kk_bifas.kk_non_sales_full` E on (A.id=E.unique_id) 
   where 1=1 
   -- and A.yyyy in (2021,2022,2023,2024)
@@ -145,7 +145,7 @@ A.p1,A.id,A.yyyy,A.paymethodid, paymethod,
  A.quantity
 -- H3.type_of_shuffle,A.p1, H3.pct1000_to,pct1000_from 
   FROM A
-  LEFT JOIN  `boelpadel.kk_bifas.omzet_shuffle_master` H3 ON  
+  LEFT JOIN  `boelpadel.kk_bifas.kk_omzet_shuffle_master` H3 ON  
       case
         when H3.type='O_B_J_K_V_I_P_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy AND H3.quarter=A.quarter and H3.vat=A.vat1 and H3.itemname=A.itemname and cast(H3.price as FLOAT64)=cast(A.price as FLOAT64))      
         when H3.type='O_B_J_V_I_P_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy and H3.vat=A.vat1 and H3.itemname=A.itemname and cast(H3.price as FLOAT64)=cast(A.price as FLOAT64))     
@@ -156,9 +156,9 @@ A.p1,A.id,A.yyyy,A.paymethodid, paymethod,
         when H3.type='O_B_J_V_P_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy and H3.vat=A.vat1 and H3.price=A.price )
         when H3.type='O_B_J_V_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy and H3.vat=A.vat1 )
       end
-  LEFT JOIN `boelpadel.sheets_22.kk_revenue_groups` C1 ON
+  LEFT JOIN `boelpadel.kk_bifas.revenue_groups` C1 ON
       case
         when H3.type_of_shuffle IN ('move','delete') and H3.move_grp<>-1 and A.p1<=H3.pct1000_to and A.p1>=H3.pct1000_from then (H3.move_grp=C1.id)
         else (A.revenuegroupid=C1.id)
       end
-  LEFT JOIN `boelpadel.sheets_22.kk_revenue_groups` C2 ON (A.revenuegroupid=C2.id)
+  LEFT JOIN `boelpadel.kk_bifas.revenue_groups` C2 ON (A.revenuegroupid=C2.id)
