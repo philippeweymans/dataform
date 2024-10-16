@@ -13,28 +13,22 @@ const commonAssertionsResult = commonAssertions({
         // "disabledInEnvs": ["dv", "qa"]
     },
     config: {
-        "dataform": {
-          "first_table": {
-            "where": "updated_date >= CURRENT_DATE() - 7"
-          },
-          "second_table": {
-            "where": "updated_date >= CURRENT_DATE() - 7"
-          }          
-        },
-        "kk_bifas": {
-          "afhaal_producten": {
-            "where": "product <> 'VITHIT APPEL'"
-          }
-        }
+        // "dataform": {
+        //   "first_table": {
+        //     "where": "updated_date >= CURRENT_DATE() - 7"
+        //   },
+        //   "second_table": {
+        //     "where": "updated_date >= CURRENT_DATE() - 7"
+        //   }
+        // }
     },
     rowConditions: {
         // // Format: "schema": { "table": { "conditionName": "conditionQuery", ... }, ... }
         // ["dataform" + dataform.projectConfig.vars.example]: {
-        // ["dataform_assertions"]: {
-        //   "assert_totals": {
-        //     "id_not_null": "Id IS NOT NULL",
-        //     "itemname = delta": " ItemName = 'DELTA IPA 33 CL'"
-        //   }      
+        "dataform": {
+          "vw_afhaal_producten": {
+            "product_vithit_": "product='VITHIT APPEL'"
+          }      
         // "first_table": {
         //   "id_not_null": "id IS NOT NULL",
         //   "id_strict_positive": "id > 0"
@@ -42,14 +36,14 @@ const commonAssertionsResult = commonAssertions({
         // "second_table": {
         //   "id_in_accepted_values": "id IN (1, 2, 3)"
         // }
-        // }
+        }
     },
     uniqueKeyConditions: {
         // Format: "schema": { "table": [column1, column2, ...], ... }
-        "dataform": {
-            "first_table": ["id"],
-            "second_table": ["id", "updated_date"]
-        }
+        // "dataform": {
+        //     "first_table": ["id"],
+        //     "second_table": ["id", "updated_date"]
+        // }
         // "dataform_assertions": {
         //   "assert_totals": ["ItemName"]
         // }

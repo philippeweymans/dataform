@@ -1,0 +1,5 @@
+config {
+  type: "view"
+}
+
+select * from boelpadel.kk_bifas.afhaal_producten
