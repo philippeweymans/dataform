@@ -13,11 +13,19 @@ const commonAssertionsResult = commonAssertions({
         // "disabledInEnvs": ["dv", "qa"]
     },
     config: {
-        // "dataform": {
-        //   "first_table": {
-        //     "where": "updated_date >= CURRENT_DATE() - 7"
-        //   }
-        // }
+        "dataform": {
+          "first_table": {
+            "where": "updated_date >= CURRENT_DATE() - 7"
+          },
+          "second_table": {
+            "where": "updated_date >= CURRENT_DATE() - 7"
+          }          
+        },
+        "kk_bifas": {
+          "afhaal_producten": {
+            "where": "product <> 'VITHIT APPEL'"
+          }
+        }
     },
     rowConditions: {
         // // Format: "schema": { "table": { "conditionName": "conditionQuery", ... }, ... }
