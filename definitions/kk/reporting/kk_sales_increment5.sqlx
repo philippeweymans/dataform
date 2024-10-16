@@ -1,0 +1,16 @@
+config {
+    type: "incremental",
+    schema: "kk_sales_increment",
+    name: "n1",
+    description: "d1",
+    uniqueKey: ["Id"]
+}
+
+SELECT
+  a.*,
+  PARSE_DATE('%d/%m/%Y',LEFT(CreatedOn,10)) AS CreatedOnDt,
+  PARSE_DATETIME('%d/%m/%Y %H:%M:%S',CreatedOn) AS CreatedOnDtTime
+FROM
+  `boelpadel.kk_sales_increment.kk_sales_new`
+CROSS JOIN
+  UNNEST(recs) AS a ${when(incremental(), `WHERE parse_date('%d/%m/%Y',left(CreatedOn,10)) >= (SELECT IFNULL(cast(DATE_SUB(MAX(CreatedOnDt), INTERVAL 1 MONTH) as DATE),parse_date("%m-%d-%Y","01-01-2018")) FROM ${self()})`)}
