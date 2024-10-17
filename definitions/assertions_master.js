@@ -13,6 +13,10 @@ const commonAssertionsResult = commonAssertions({
         // "disabledInEnvs": ["dv", "qa"]
     },
     config: {
+        "dataform": {
+          "vw_afhaal_producten": {
+            "product_diff_xxvithit_": "product<>'XXVITHIT APPEL'"
+          }           
         // "dataform": {
         //   "first_table": {
         //     "where": "updated_date >= CURRENT_DATE() - 7"
@@ -20,15 +24,15 @@ const commonAssertionsResult = commonAssertions({
         //   "second_table": {
         //     "where": "updated_date >= CURRENT_DATE() - 7"
         //   }
-        // }
+        }
     },
     rowConditions: {
         // // Format: "schema": { "table": { "conditionName": "conditionQuery", ... }, ... }
         // ["dataform" + dataform.projectConfig.vars.example]: {
-        "dataform": {
-          "vw_afhaal_producten": {
-            "product_vithit_": "product='VITHIT APPEL'"
-          }      
+        // "dataform": {
+        //   "vw_afhaal_producten": {
+        //     "product_vithit_": "product='VITHIT APPEL'"
+        //   }      
         // "first_table": {
         //   "id_not_null": "id IS NOT NULL",
         //   "id_strict_positive": "id > 0"
@@ -36,7 +40,7 @@ const commonAssertionsResult = commonAssertions({
         // "second_table": {
         //   "id_in_accepted_values": "id IN (1, 2, 3)"
         // }
-        }
+        // }
     },
     uniqueKeyConditions: {
         // Format: "schema": { "table": [column1, column2, ...], ... }
