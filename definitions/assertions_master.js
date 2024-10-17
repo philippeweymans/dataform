@@ -3,8 +3,8 @@ const commonAssertions = require("../index");
 const commonAssertionsResult = commonAssertions({
     globalAssertionsParams: {
         "database": "boelpadel",
-        "schema": "dataform",
-        // "schema": "assertions_" + dataform.projectConfig.vars.env,
+        // "schema": "dataform",
+        "schema": "dataform_" + dataform.projectConfig.vars.env,
         "location": "EU",
         "tags": ["assertions"],
         // Sometimes data quality is not good in some environments,
@@ -14,9 +14,9 @@ const commonAssertionsResult = commonAssertions({
     },
     config: {
         "dataform": {
-          "first_table": {
-            "where": "updated_date >= CURRENT_DATE() - 7"
-          }
+            "first_table": {
+                "where": "updated_date >= CURRENT_DATE() - 7"
+            }
         }
     },
     rowConditions: {
@@ -30,10 +30,10 @@ const commonAssertionsResult = commonAssertions({
             "first_table": {
                 "id_not_null": "id IS NOT NULL",
                 "id_strict_positive": "id > 0"
-                }
-        // "second_table": {
-        //   "id_in_accepted_values": "id IN (1, 2, 3)"
-        // }
+            }
+            // "second_table": {
+            //   "id_in_accepted_values": "id IN (1, 2, 3)"
+            // }
         }
     },
     uniqueKeyConditions: {

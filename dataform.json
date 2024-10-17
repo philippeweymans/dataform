@@ -5,7 +5,6 @@
     "defaultDatabase": "boelpadel",
     "defaultLocation": "EU",
     "vars":{
-        "env":"",
-        "example":""
+        "env":"dev"
     }
 } 
