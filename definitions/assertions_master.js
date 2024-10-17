@@ -17,6 +17,11 @@ const commonAssertionsResult = commonAssertions({
             "first_table": {
                 "where": "updated_date >= CURRENT_DATE() - 7"
             }
+        },
+        "kk_bifas": {
+            "afhaal_producten": {
+                "where": "product is not null"
+            }
         }
     },
     rowConditions: {
@@ -126,7 +131,8 @@ for (const key in commonAssertionsResult) {
 const sqlQuery = selectClauses.join("\n UNION ALL \n");
 
 publish("assertions_audit", {
-    type: "table"
+    type: "table",
+    schema: "dataform_" + dataform.projectConfig.vars.env
 }).query(
     (ctx) => sqlQuery
 );
