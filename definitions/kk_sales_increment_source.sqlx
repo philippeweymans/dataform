@@ -1,0 +1,22 @@
+config {
+  type: "view",
+  schema: "kk_sales_increment_scd",
+  tags: ["scd-sales"]
+}
+
+with A as
+(SELECT
+  a.*,
+  PARSE_DATE('%d/%m/%Y',LEFT(CreatedOn,10)) AS CreatedOnDt,
+  PARSE_DATETIME('%d/%m/%Y %H:%M:%S',CreatedOn) AS CreatedOnDtTime
+FROM
+  `boelpadel.kk_sales_increment.kk_sales_new`
+CROSS JOIN
+  UNNEST(recs) AS a)
+select Amount1,Amount2,CreatedOn,Id,'xx' as ItemName,MemberId,PayMethodId,PosPointId,Quantity,RevenueGroupId,TotalAmount,Vat1,Vat2,CreatedOnDt,CreatedOnDtTime from A where Id=726472
+UNION ALL
+select Amount1,Amount2,CreatedOn,1000000 as Id,ItemName,MemberId,PayMethodId,PosPointId,Quantity,RevenueGroupId,TotalAmount,Vat1,Vat2,CreatedOnDt,CreatedOnDtTime from A where Id=726469
+UNION ALL 
+select Amount1,Amount2,CreatedOn,Id,ItemName,MemberId,PayMethodId,PosPointId,Quantity,RevenueGroupId,TotalAmount,Vat1,Vat2,CreatedOnDt,CreatedOnDtTime from A where Id not in (726472,726469)
+
+
