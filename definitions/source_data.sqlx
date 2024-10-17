@@ -1,0 +1,37 @@
+config {
+  type: "view",
+  tags: ["slowly-changing-dimensions"]
+}
+
+WITH example_dataset AS (
+  SELECT
+    user_id,
+    field_a,
+    field_b,
+    updated_at
+  FROM
+    (
+      SELECT
+        1 as user_id,
+        'a' AS field_a,
+        11 AS field_b,
+        datetime_add(current_datetime(), interval 1 day) AS updated_at
+    )
+  UNION ALL
+    (
+      SELECT
+        2 as user_id,
+        'bb' AS field_a,
+        22 AS field_b,
+        datetime_add(current_datetime(), interval 0 day) AS updated_at
+    )
+)
+SELECT
+  *,
+  md5(concat(
+    field_a,
+    cast(field_b AS string)
+    )
+    ) AS hash_value
+FROM
+  example_dataset
