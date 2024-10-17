@@ -12,13 +12,13 @@ const { updates, view } = scd("source_data_scd2", {
   hash: "hash_value",
   // The source table to build slowly changing dimensions from.
   source: {
-    schema: "dataform",
+    schema: "kk_sales_increment_scd",
     name: "source_data_scd",
   },
   // Any tags that will be added to actions.
   tags: ["scd"],
   // Optional documentation of table columns
-  columns: {user_id: "User ID", updated_at: "Timestamp for updates"},
+  columns: {user_id: "User ID", hash_value: "Hash of all fields to compare",updated_at: "Timestamp for updates"},
   // Any configuration parameters to apply to the incremental table that will be created.
   incrementalConfig: {
     bigquery: {
@@ -30,6 +30,6 @@ const { updates, view } = scd("source_data_scd2", {
 // Additional customization of the created models can be done by using the returned actions objects.
 updates.config({
   // You can specify the output schema here if it is different than the default
-  schema: "dataform",
+  schema: "kk_sales_increment_scd",
   description: "Updates table for SCD",
 });

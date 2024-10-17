@@ -8,9 +8,9 @@ const { updates, view } = scd("kk_sales_increment_scd", {
   // A unique identifier for rows in the table.
   uniqueKey: "Id",
   // A field that stores a timestamp or date of when the row was last changed.
-  // timestamp: "updated_at",
+  timestamp: "RecordCreationDate",
   // A field that stores the hash value of the fields that we want to track changes in. If you do not want to use the hash comparison, you may omit this field or set it to null
-  // hash: "hash_value",
+  hash: "hash_value",
   // The source table to build slowly changing dimensions from.
   source: {
     schema: "kk_sales_increment_scd",
@@ -19,11 +19,11 @@ const { updates, view } = scd("kk_sales_increment_scd", {
   // Any tags that will be added to actions.
   tags: ["scd-sales"],
   // Optional documentation of table columns
-  // columns: {user_id: "User ID", updated_at: "Timestamp for updates"},
+  columns: {Id: "Unique ID"},
   // Any configuration parameters to apply to the incremental table that will be created.
   incrementalConfig: {
     bigquery: {
-      // partitionBy: "updated_at",
+      partitionBy: "CreatedOnDt",
     },
   },
 });

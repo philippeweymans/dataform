@@ -4,19 +4,27 @@ config {
   tags: ["scd-sales"]
 }
 
-with A as
+with B as
 (SELECT
   a.*,
   PARSE_DATE('%d/%m/%Y',LEFT(CreatedOn,10)) AS CreatedOnDt,
-  PARSE_DATETIME('%d/%m/%Y %H:%M:%S',CreatedOn) AS CreatedOnDtTime
+  PARSE_DATETIME('%d/%m/%Y %H:%M:%S',CreatedOn) AS CreatedOnDtTime,
+  CURRENT_DATETIME("UTC+2") as RecordCreationDate,
+  md5(concat(
+  cast(Amount1 AS STRING),cast(Amount2 AS STRING),cast(CreatedOn AS STRING),cast(Id AS STRING),ItemName,cast(MemberId AS STRING),cast(PayMethodId AS STRING),cast(PosPointId AS STRING),cast(Quantity AS STRING),cast(RevenueGroupId AS STRING),cast(TotalAmount AS STRING),cast(Vat1 AS STRING),cast(Vat2 AS STRING),cast(CreatedOn AS STRING)
+  )
+  ) AS hash_value
 FROM
   `boelpadel.kk_sales_increment.kk_sales_new`
 CROSS JOIN
   UNNEST(recs) AS a)
-select Amount1,Amount2,CreatedOn,Id,'xx' as ItemName,MemberId,PayMethodId,PosPointId,Quantity,RevenueGroupId,TotalAmount,Vat1,Vat2,CreatedOnDt,CreatedOnDtTime from A where Id=726472
+select Amount1,Amount2,CreatedOn,Id,'xXxx' as ItemName,  MemberId,PayMethodId,PosPointId,Quantity,RevenueGroupId,TotalAmount,Vat1,Vat2,CreatedOnDt,CreatedOnDtTime,RecordCreationDate, hash_value from B where Id=726472
 UNION ALL
-select Amount1,Amount2,CreatedOn,1000000 as Id,ItemName,MemberId,PayMethodId,PosPointId,Quantity,RevenueGroupId,TotalAmount,Vat1,Vat2,CreatedOnDt,CreatedOnDtTime from A where Id=726469
-UNION ALL 
-select Amount1,Amount2,CreatedOn,Id,ItemName,MemberId,PayMethodId,PosPointId,Quantity,RevenueGroupId,TotalAmount,Vat1,Vat2,CreatedOnDt,CreatedOnDtTime from A where Id not in (726472,726469)
-
+select Amount1,Amount2,CreatedOn,1000000 as Id,ItemName,MemberId,PayMethodId,PosPointId,Quantity,RevenueGroupId,TotalAmount,Vat1,Vat2,CreatedOnDt,CreatedOnDtTime,RecordCreationDate, hash_value from B where Id=726469
+-- select Amount1,Amount2,CreatedOn,Id,ItemName,MemberId,PayMethodId,PosPointId,Quantity,RevenueGroupId,TotalAmount,Vat1,Vat2,CreatedOnDt,CreatedOnDtTime, RecordCreationDate, hash_value from B LIMIT 10 
+-------------------
+-- select Amount1,Amount2,CreatedOn,Id,'xxx' as ItemName, 1 as MemberId,PayMethodId,PosPointId,Quantity,RevenueGroupId,TotalAmount,Vat1,Vat2,CreatedOnDt,CreatedOnDtTime from B where Id=726472
+-- UNION ALL
+-- select Amount1,Amount2,CreatedOn,1000000 as Id,ItemName,MemberId,PayMethodId,PosPointId,Quantity,RevenueGroupId,TotalAmount,Vat1,Vat2,CreatedOnDt,CreatedOnDtTime from B where Id=726469
+-- select Amount1,Amount2,CreatedOn,Id,ItemName,MemberId,PayMethodId,PosPointId,Quantity,RevenueGroupId,TotalAmount,Vat1,Vat2,CreatedOnDt,CreatedOnDtTime from B LIMIT 10 
 

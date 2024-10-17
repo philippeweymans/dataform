@@ -8,6 +8,7 @@ module.exports = (
   // Create an incremental table with just pure updates, for a full history of the table.
   const updates = publish(`${name}_updates`, {
     type: "incremental",
+    schema: "kk_sales_increment_scd",
     tags,
     columns,
     ...incrementalConfig,
@@ -39,6 +40,7 @@ module.exports = (
   // Create a view on top of the raw updates table that contains computed valid_from and valid_to fields.
   const view = publish(name, {
     type: "view",
+    schema: "kk_sales_increment_scd",
     tags,
     columns: {
       ...columns,

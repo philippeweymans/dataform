@@ -1,6 +1,6 @@
 config {
   type: "view",
-  schema: "dataform",
+  schema: "kk_sales_increment_scd",
   tags: ["scd"]
 }
 
@@ -15,15 +15,15 @@ WITH example_dataset AS (
       SELECT
         1 as user_id,
         'b' AS field_a,
-        112.3 AS field_b,
+        11112.3 AS field_b,
         date_add(current_date(), interval 2 day) AS updated_at
     )
   UNION ALL
     (
       SELECT
-        3 as user_id,
+        4 as user_id,
         'c' AS field_a,
-        23.4 AS field_b,
+        2223.4 AS field_b,
         date_add(current_date(), interval 0 day) AS updated_at
     )
 )
