@@ -1,0 +1,16 @@
+{
+    "name": "@devoteamgcloud/dataform-assertions",
+    "version": "2.0.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/devoteamgcloud/dataform-assertions.git"
+    },
+    "dependencies": {
+        "@dataform/core": "^3.0.0",
+        "dataform-scd": "https://github.com/dataform-co/dataform-scd/archive/0.3.tar.gz"
+    },
+    "publishConfig": {
+        "registry": "https://npm.pkg.github.com/"
+    }
+   }
+

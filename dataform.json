@@ -1,0 +1,10 @@
+{
+    "warehouse": "bigquery",
+    "defaultSchema": "dataform",
+    "assertionSchema": "dataform_assertions",
+    "defaultDatabase": "boelpadel",
+    "defaultLocation": "EU",
+    "vars":{
+        "env":"dev"
+    }
+} 

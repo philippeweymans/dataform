@@ -29,7 +29,7 @@ SELECT   H3.yyyy,H3.quarter,H3.revenuegroupid, H3.paymethodid,H3.vat as vat1,H3.
      left join A on   
      case   
         when H3.type='O_B_J_K_V_I_P_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy AND H3.quarter=A.quarter and H3.vat=A.vat1 and H3.itemname=A.itemname and cast(H3.price as FLOAT64)=cast(A.price as FLOAT64))      
-        -- when H3.type='O_B_J_V_I_P_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy and H3.vat=A.vat1 and H3.itemname=A.itemname and cast(H3.price as FLOAT64)=cast(A.price as FLOAT64))     
+        when H3.type='O_B_J_V_I_P_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy and H3.vat=A.vat1 and H3.itemname=A.itemname and cast(H3.price as FLOAT64)=cast(A.price as FLOAT64))     
         when H3.type='O_B_J_K_V_I_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy AND H3.quarter=A.quarter and H3.vat=A.vat1 and H3.itemname=A.itemname )
         when H3.type='O_B_J_K_V_P_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy AND H3.quarter=A.quarter and H3.vat=A.vat1 and cast(H3.price as FLOAT64)=cast(A.price as FLOAT64))
         when H3.type='O_B_J_K_V_' then (H3.paymethodid=A.paymethodid AND H3.revenuegroupid=A.revenuegroupid AND H3.yyyy=A.yyyy AND H3.quarter=A.quarter and H3.vat=A.vat1)
@@ -42,6 +42,6 @@ SELECT   H3.yyyy,H3.quarter,H3.revenuegroupid, H3.paymethodid,H3.vat as vat1,H3.
     WHERE 1=1
     and A.paymethodid is null
     and 
-        (H3.type='O_B_J_V_I_P_')       
+        (H3.type='O_B_J_V_I_P_XX')       
     group by H3.yyyy,H3.quarter,H3.revenuegroupid, H3.paymethodid,H3.vat,H3.itemname,H3.type,H3.pct1000_from, H3.pct1000_to, H3.type_of_shuffle, H3.move_grp, H3.move_vat, H3.move_item, H3.price, C1.desc, B.description
 
