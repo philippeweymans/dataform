@@ -16,7 +16,7 @@ const { updates, view } = scd("source_data_scd2", {
     name: "source_data_scd",
   },
   // Any tags that will be added to actions.
-  tags: ["slowly-changing-dimensions"],
+  tags: ["scd"],
   // Optional documentation of table columns
   columns: {user_id: "User ID", updated_at: "Timestamp for updates"},
   // Any configuration parameters to apply to the incremental table that will be created.
