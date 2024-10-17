@@ -13,10 +13,10 @@ const commonAssertionsResult = commonAssertions({
         // "disabledInEnvs": ["dv", "qa"]
     },
     config: {
-        "dataform": {
-          "vw_afhaal_producten": {
-            "product_diff_xxvithit_": "product<>'XXVITHIT APPEL'"
-          }           
+        // "dataform": {
+        //   "vw_afhaal_producten": {
+        //     "product_diff_xxvithit_": "product<>'XXVITHIT APPEL'"
+        //   }           
         // "dataform": {
         //   "first_table": {
         //     "where": "updated_date >= CURRENT_DATE() - 7"
@@ -24,7 +24,7 @@ const commonAssertionsResult = commonAssertions({
         //   "second_table": {
         //     "where": "updated_date >= CURRENT_DATE() - 7"
         //   }
-        }
+        // }
     },
     rowConditions: {
         // // Format: "schema": { "table": { "conditionName": "conditionQuery", ... }, ... }
