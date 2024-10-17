@@ -14,16 +14,9 @@ const commonAssertionsResult = commonAssertions({
     },
     config: {
         "dataform": {
-          "vw_afhaal_producten": {
-            "product_diff_null_": "product IS NOT NULL'"
-          }           
-        // "dataform": {
-        //   "first_table": {
-        //     "where": "updated_date >= CURRENT_DATE() - 7"
-        //   },
-        //   "second_table": {
-        //     "where": "updated_date >= CURRENT_DATE() - 7"
-        //   }
+          "first_table": {
+            "where": "updated_date >= CURRENT_DATE() - 7"
+          }
         }
     },
     rowConditions: {
@@ -33,14 +26,15 @@ const commonAssertionsResult = commonAssertions({
         //   "vw_afhaal_producten": {
         //     "product_vithit_": "product='VITHIT APPEL'"
         //   }      
-        // "first_table": {
-        //   "id_not_null": "id IS NOT NULL",
-        //   "id_strict_positive": "id > 0"
-        // },
+        "dataform": {
+            "first_table": {
+                "id_not_null": "id IS NOT NULL",
+                "id_strict_positive": "id > 0"
+                }
         // "second_table": {
         //   "id_in_accepted_values": "id IN (1, 2, 3)"
         // }
-        // }
+        }
     },
     uniqueKeyConditions: {
         // Format: "schema": { "table": [column1, column2, ...], ... }
