@@ -6,12 +6,11 @@
         "url": "https://github.com/devoteamgcloud/dataform-assertions.git"
     },
     "dependencies": {
-        "@dataform/core": "^3.0.0"
+        "@dataform/core": "^3.0.0",
+        "dataform-scd": "https://github.com/dataform-co/dataform-scd/archive/0.3.tar.gz"
     },
     "publishConfig": {
         "registry": "https://npm.pkg.github.com/"
-    },
-    "dataform-scd": "https://github.com/dataform-co/dataform-scd/archive/0.4.tar.gz"
-
-}
+    }
+   }
 
