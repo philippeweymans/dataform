@@ -1,0 +1,28 @@
+config {
+  type: "incremental",
+    schema: "kk_sales_increment",
+    uniqueKey: ["Id"],
+    tags: ["tagTest2"]
+}
+select * from boelpadel.kk_bifas.afhaal_producten
+
+-- MERGE INTO ${self()} AS target
+-- USING (
+-- SELECT
+--   a.*,
+--   PARSE_DATE('%d/%m/%Y',LEFT(CreatedOn,10)) AS CreatedOnDt,
+--   PARSE_DATETIME('%d/%m/%Y %H:%M:%S',CreatedOn) AS CreatedOnDtTime,
+--   CURRENT_DATETIME("UTC+2") as updateInsertTime
+-- FROM
+--   kk_sales_increment.kk_sales_new
+-- CROSS JOIN
+--   UNNEST(recs) AS a
+-- WHERE parse_date('%d/%m/%Y',left(CreatedOn,10)) >= (SELECT IFNULL(cast(DATE_SUB(MAX(CreatedOnDt), INTERVAL 1 MONTH) as DATE),parse_date("%m-%d-%Y","01-01-2018")) FROM ${self()})
+-- ) AS source
+-- ON target.Id = source.Id
+-- WHEN MATCHED THEN
+--   UPDATE SET target.Amount1=source.Amount1,target.Amount2=source.Amount2,target.CreatedOn=source.CreatedOn,target.ItemName=source.ItemName,target.MemberId=source.MemberId,target.PayMethodId=source.PayMethodId,target.PosPointId=source.PosPointId,target.Quantity=source.Quantity,target.RevenueGroupId=source.RevenueGroupId,target.TotalAmount=source.TotalAmount,target.Vat1=source.Vat1,target.Vat2=source.Vat2,target.CreatedOnDt=source.CreatedOnDt,target.CreatedOnDtTime=source.CreatedOnDtTime
+-- WHEN NOT MATCHED THEN
+--   INSERT (Amount1,Amount2,CreatedOn,Id,ItemName,MemberId,PayMethodId,PosPointId,Quantity,RevenueGroupId,TotalAmount,Vat1,Vat2,CreatedOnDt,CreatedOnDtTime,RecordCreationDate,RecordModificationDate) VALUES (source.Amount1,source.Amount2,source.CreatedOn,source.Id,source.ItemName,source.MemberId,source.PayMethodId,source.PosPointId,source.Quantity,source.RevenueGroupId,source.TotalAmount,source.Vat1,source.Vat2,source.CreatedOnDt,source.CreatedOnDtTime)
+
+

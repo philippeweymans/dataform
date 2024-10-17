@@ -10,5 +10,8 @@
     },
     "publishConfig": {
         "registry": "https://npm.pkg.github.com/"
-    }
+    },
+    "dataform-scd": "https://github.com/dataform-co/dataform-scd/archive/0.4.tar.gz"
+
 }
+

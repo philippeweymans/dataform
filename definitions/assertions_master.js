@@ -36,9 +36,7 @@ const commonAssertionsResult = commonAssertions({
             "first_table": {
                 "id_not_null": "id IS NOT NULL",
                 "id_strict_positive": "id > 0"
-            }
-        },
-        "dataform": {
+            },
             "vw_afhaal_producten": {
                 "product_not_null_": "product is not null"
             }
