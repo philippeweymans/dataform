@@ -10,19 +10,20 @@ const commonAssertionsResult = commonAssertions({
         // Sometimes data quality is not good in some environments,
         // assertions can be disabled in those environments.
         // Set the 'dataform.projectConfig.vars.env' var in 'dataform.json' for this to work.
-        // "disabledInEnvs": ["dv", "qa"]
+        // "disabledInEnvs": ["dev", "qua", "prd"]
     },
     config: {
         "dataform": {
             "first_table": {
                 "where": "updated_date >= CURRENT_DATE() - 7"
             }
-        },
-        "kk_bifas": {
-            "afhaal_producten": {
-                "where": "product is not null"
-            }
         }
+        // ,
+        // "kk_bifas": {
+        //     "afhaal_producten": {
+        //         "where": "product is not null"
+        //     }
+        // }
     },
     rowConditions: {
         // // Format: "schema": { "table": { "conditionName": "conditionQuery", ... }, ... }
@@ -36,10 +37,16 @@ const commonAssertionsResult = commonAssertions({
                 "id_not_null": "id IS NOT NULL",
                 "id_strict_positive": "id > 0"
             }
+        },
+        "dataform": {
+            "vw_afhaal_producten": {
+                "product_not_null_": "product is not null"
+            }
+        }
             // "second_table": {
             //   "id_in_accepted_values": "id IN (1, 2, 3)"
             // }
-        }
+        // }
     },
     uniqueKeyConditions: {
         // Format: "schema": { "table": [column1, column2, ...], ... }
