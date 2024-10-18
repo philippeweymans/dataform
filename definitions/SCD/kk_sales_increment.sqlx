@@ -1,8 +1,7 @@
 config {
     type: "incremental",
     schema: "kk_sales_increment",
-    uniqueKey: ["Id"],
-    tags: ["tagTest"]
+    uniqueKey: ["Id"]
 }
 
 SELECT
