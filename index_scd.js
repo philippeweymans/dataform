@@ -8,6 +8,7 @@ module.exports = (
   // Create an incremental table with just pure updates, for a full history of the table.
   const updates = publish(`${name}_updates`, {
     type: "incremental",
+    schema: "kk_sales_increment_scd",
     tags,
     columns,
     ...incrementalConfig,
