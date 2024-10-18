@@ -1,7 +1,7 @@
 {
     "warehouse": "bigquery",
     "defaultSchema": "dataform",
-    "assertionSchema": "dataform_assertions",
+    "assertionSchema": "assertions",
     "defaultDatabase": "boelpadel",
     "defaultLocation": "EU",
     "vars":{

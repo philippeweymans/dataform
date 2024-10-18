@@ -1,0 +1,6 @@
+config {
+  type: "view",
+  schema: "kk_bifas"
+}
+
+select * from ${ref("afhaal_producten")}

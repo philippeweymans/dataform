@@ -4,7 +4,7 @@ const commonAssertionsResult = commonAssertions({
     globalAssertionsParams: {
         "database": "boelpadel",
         // "schema": "dataform",
-        "schema": "dataform_" + dataform.projectConfig.vars.env,
+        "schema": dataform.projectConfig.assertionSchema +'_'+ dataform.projectConfig.vars.env,
         "location": "EU",
         "tags": ["assertions"],
         // Sometimes data quality is not good in some environments,
@@ -36,15 +36,17 @@ const commonAssertionsResult = commonAssertions({
             "first_table": {
                 "id_not_null": "id IS NOT NULL",
                 "id_strict_positive": "id > 0"
-            },
-            "vw_afhaal_producten": {
-                "product_not_null_": "product is not null"
             }
-        }
-            // "second_table": {
-            //   "id_in_accepted_values": "id IN (1, 2, 3)"
+            // ,"vw_afhaal_producten": {
+            //     "product_not_null_": "product is not null"
             // }
-        // }
+        }
+        //////// "dataform.projectConfig.assertionSchema +'_'+ dataform.projectConfig.vars.env" : {
+    //     "kk_bifas": {
+    //         "afhaal_producten": {
+    //             "product_not_null": "product IS NOT NULL"
+    //         }
+    //     },        
     },
     uniqueKeyConditions: {
         // Format: "schema": { "table": [column1, column2, ...], ... }
