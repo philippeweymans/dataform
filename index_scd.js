@@ -25,12 +25,12 @@ module.exports = (
           // SELECT ${uniqueKey},${hash} FROM ids_trgt)`
           
           `WITH ids_to_update_prep as (
-          select ${uniqueKey}, ${hash}, updated_at, max(updated_at) over (partition by ${uniqueKey}) as maxDt 
+          select ${uniqueKey}, ${hash}, ${timestamp}, max(${timestamp}) over (partition by ${uniqueKey}) as maxDt 
           from ${ctx.self()}),
           ids_to_update as
           (SELECT ${uniqueKey}, ${hash} FROM ${ctx.ref(source)}
           EXCEPT DISTINCT
-          select ${uniqueKey}, ${hash} from ids_to_update_prep where updated_at=maxDt)`
+          select ${uniqueKey}, ${hash} from ids_to_update_prep where ${timestamp}=maxDt)`
           )}
 
       select * from ${ctx.ref(source)}
@@ -53,6 +53,7 @@ module.exports = (
   // Create a view on top of the raw updates table that contains computed valid_from and valid_to fields.
   const view = publish(name, {
     type: "view",
+    schema: "kk_sales_increment_scd",
     tags,
     columns: {
       ...columns,
