@@ -2,6 +2,7 @@
     "warehouse": "bigquery",
     "defaultSchema": "dataform",
     "assertionSchema": "assertions",
+    "defaultSrcSchema": "kk_bifas",    
     "defaultDatabase": "boelpadel",
     "defaultLocation": "EU",
     "vars":{

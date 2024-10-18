@@ -13,17 +13,16 @@ const commonAssertionsResult = commonAssertions({
         // "disabledInEnvs": ["dev", "qua", "prd"]
     },
     config: {
-        "dataform": {
-            "first_table": {
-                "where": "updated_date >= CURRENT_DATE() - 7"
+        // "dataform": {
+        //     "first_table": {
+        //         "where": "updated_date >= CURRENT_DATE() - 7"
+        //     }
+        // },
+        "kk_bifas": {
+            "afhaal_producten": {
+                "where": "product is not null"
             }
         }
-        // ,
-        // "kk_bifas": {
-        //     "afhaal_producten": {
-        //         "where": "product is not null"
-        //     }
-        // }
     },
     rowConditions: {
         // // Format: "schema": { "table": { "conditionName": "conditionQuery", ... }, ... }
@@ -33,20 +32,18 @@ const commonAssertionsResult = commonAssertions({
         //     "product_vithit_": "product='VITHIT APPEL'"
         //   }      
         "dataform": {
-            "first_table": {
-                "id_not_null": "id IS NOT NULL",
-                "id_strict_positive": "id > 0"
-            }
-            // ,"vw_afhaal_producten": {
-            //     "product_not_null_": "product is not null"
+            // "first_table": {
+            //     "id_not_null": "id IS NOT NULL",
+            //     "id_strict_positive": "id > 0"
             // }
-        }
-        //////// "dataform.projectConfig.assertionSchema +'_'+ dataform.projectConfig.vars.env" : {
-    //     "kk_bifas": {
-    //         "afhaal_producten": {
-    //             "product_not_null": "product IS NOT NULL"
-    //         }
-    //     },        
+        },
+        // [dataform.projectConfig.assertionSchema +'_'+ dataform.projectConfig.vars.env] : {
+        [dataform.projectConfig.defaultSrcSchema] : {
+        // "kk_bifas": {
+            "afhaal_producten": {
+                "product_vithit_": "product='VITHIT APPEL'"
+            }
+        },        
     },
     uniqueKeyConditions: {
         // Format: "schema": { "table": [column1, column2, ...], ... }
