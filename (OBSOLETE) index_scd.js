@@ -8,6 +8,7 @@ module.exports = (
   // Create an incremental table with just pure updates, for a full history of the table.
   const updates = publish(`${name}_updates`, {
     type: "incremental",
+    schema: "kk_sales_increment_scd",
     tags,
     columns,
     ...incrementalConfig,
@@ -15,29 +16,16 @@ module.exports = (
     !!hash ?
        (ctx) => `
     ${ctx.when(
-          ctx.incremental(), 
-          // `WITH ids_to_update AS (SELECT ${uniqueKey}, ${hash} FROM ${ctx.ref(source)}),\  
-          // maxDt AS (SELECT ${uniqueKey}, MAX(updated_at) AS updated_at FROM ${ctx.self()} GROUP BY ${uniqueKey}), \ 
-          // ids_trgt AS ( SELECT B.${uniqueKey},B.${hash} B.updated_at FROM ${ctx.self()} B JOIN maxDt ON (maxDt.${uniqueKey}=B.${uniqueKey} AND maxDt.updated_at=B.updated_at)), \
-          // ids_to_update2 as (SELECT ${uniqueKey}, ${hash} FROM ids_to_update \
-          // EXCEPT DISTINCT \
-          // SELECT ${uniqueKey},${hash} FROM ids_trgt)`
-          
-          `WITH ids_to_update_prep as (
-          select ${uniqueKey}, ${hash}, updated_at, max(updated_at) over (partition by ${uniqueKey}) as maxDt 
-          from ${ctx.self()}),
-          ids_to_update as
-          (SELECT ${uniqueKey}, ${hash} FROM ${ctx.ref(source)}
-          EXCEPT DISTINCT
-          select ${uniqueKey}, ${hash} from ids_to_update_prep where updated_at=maxDt)`
-          )}
-
+          ctx.incremental(), `with ids_to_update as \
+        (select ${uniqueKey}, ${hash}  from ${ctx.ref(source)}\
+        except distinct \
+        (select ${uniqueKey}, ${hash} from ${ctx.self()}))`
+      )}
       select * from ${ctx.ref(source)}
       ${ctx.when(
-          ctx.incremental(),  
-          `where 1=1 
+          ctx.incremental(),
+          `where ${timestamp} > (select max(${timestamp}) from ${ctx.self()})
         and ${uniqueKey} in (select ${uniqueKey} from ids_to_update)`
-        // ${timestamp} > (select max(${timestamp}) from ${ctx.self()})
       )}`
     :
   (ctx) => `
@@ -52,6 +40,7 @@ module.exports = (
   // Create a view on top of the raw updates table that contains computed valid_from and valid_to fields.
   const view = publish(name, {
     type: "view",
+    schema: "kk_sales_increment_scd",
     tags,
     columns: {
       ...columns,

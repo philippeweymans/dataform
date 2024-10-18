@@ -1,4 +1,4 @@
-const scd = require("../index_scd_v2");
+const scd = require("../../index_scd");
 
 /**
  * Create an SCD table on top of the fake table defined in source_data.sqlx.

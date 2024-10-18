@@ -1,4 +1,4 @@
-const commonAssertions = require("../index_assertions");
+const commonAssertions = require("../../index_assertions");
 
 const commonAssertionsResult = commonAssertions({
     globalAssertionsParams: {
