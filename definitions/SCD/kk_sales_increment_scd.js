@@ -1,6 +1,6 @@
 // const scd = require("../(OBSOLETE) index_scd");
 
-const scd = require("../index_scd");
+const scd = require("../../index_scd");
 
 /**
  * Create an SCD table on top of the fake table defined in.
