@@ -1,6 +1,6 @@
 config {
   type: "view",
-  tags: ["slowly-changing-dimensions"]
+  tags: ["scd-example"]
 }
 
 WITH example_dataset AS (

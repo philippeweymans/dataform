@@ -1,4 +1,4 @@
-const scd = require("../../index_scd");
+const scd = require("../../../index_scd");
 
 /**
  * Create an SCD table on top of the fake table defined in source_data.sqlx.
@@ -16,7 +16,7 @@ const { updates, view } = scd("source_data_scd2", {
     name: "source_data",
   },
   // Any tags that will be added to actions.
-  tags: ["slowly-changing-dimensions"],
+  tags: ["scd-example"],
   // Optional documentation of table columns
   columns: {user_id: "User ID", hash_value: "Hash of all fields to compare",updated_at: "Timestamp for updates"},
   // Any configuration parameters to apply to the incremental table that will be created.
