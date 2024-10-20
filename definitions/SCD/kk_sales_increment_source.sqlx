@@ -1,0 +1,68 @@
+config {
+    type: "view",
+    schema: "kk_sales_increment_scd",
+    tags: ["scd-sales"]
+}
+
+WITH
+  B AS (
+  SELECT
+    a.*,
+    PARSE_DATE('%d/%m/%Y',LEFT(CreatedOn,10)) AS CreatedOnDt,
+    PARSE_DATETIME('%d/%m/%Y %H:%M:%S',CreatedOn) AS CreatedOnDtTime,
+    CURRENT_DATETIME("UTC+2") AS RecordCreationDate
+  FROM
+    `boelpadel.kk_sales_increment.kk_sales_new`
+  CROSS JOIN
+    UNNEST(recs) AS a),
+ C as (
+-- SELECT
+--   Amount1,
+--   Amount2,
+--   CreatedOn,
+--   Id,
+--   'xxXxxxx' AS ItemName,
+--   MemberId,
+--   PayMethodId,
+--   PosPointId,
+--   Quantity,
+--   RevenueGroupId,
+--   TotalAmount,
+--   Vat1,
+--   Vat2,
+--   CreatedOnDt,
+--   CreatedOnDtTime,
+--   RecordCreationDate
+-- FROM
+--   B
+-- WHERE
+--   Id=726838
+-- UNION ALL
+-- SELECT
+--   Amount1,
+--   Amount2,
+--   CreatedOn,
+--   1000000 AS Id,
+--   ItemName,
+--   MemberId,
+--   PayMethodId,
+--   PosPointId,
+--   Quantity,
+--   RevenueGroupId,
+--   TotalAmount,
+--   Vat1,
+--   Vat2,
+--   CreatedOnDt,
+--   CreatedOnDtTime,
+--   RecordCreationDate
+-- FROM
+--   B
+-- WHERE
+--   Id=726811
+------------------
+ select Amount1,Amount2,CreatedOn,Id,ItemName,MemberId,PayMethodId,PosPointId,Quantity,RevenueGroupId,TotalAmount,Vat1,Vat2,CreatedOnDt,CreatedOnDtTime, RecordCreationDate from B LIMIT 10
+  
+  )
+SELECT C.*, MD5(CONCAT( CAST(Amount1 AS STRING),CAST(Amount2 AS STRING),CAST(CreatedOn AS STRING),CAST(Id AS STRING),ItemName,CAST(MemberId AS STRING),CAST(PayMethodId AS STRING),CAST(PosPointId AS STRING),CAST(Quantity AS STRING),CAST(RevenueGroupId AS STRING),CAST(TotalAmount AS STRING),CAST(Vat1 AS STRING),CAST(Vat2 AS STRING),CAST(CreatedOn AS STRING) ) ) AS hash_value
+FROM C
+  
