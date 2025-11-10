@@ -135,14 +135,30 @@
             const priceText = priceEl.textContent.trim();
 
             // Extract all prices from the text (handles multiple prices in one element)
-            const priceMatches = priceText.match(/€\s*[\d.,]+/g);
+            // Match € followed by valid price (must have at least 1 digit and proper decimal)
+            const priceMatches = priceText.match(/€\s*\d{1,6}[.,]\d{2}/g);
+
             if (priceMatches && priceMatches.length >= 2) {
-                // If we find multiple prices in one element, assume first is sale, second is original
-                salePrice = priceMatches[0];
-                originalPrice = priceMatches[1];
-                break;
+                // Clean up whitespace and filter out invalid prices
+                const validPrices = priceMatches
+                    .map(p => p.replace(/\s+/g, ' ').trim())
+                    .filter(p => {
+                        const num = parseFloat(p.replace('€', '').replace(',', '.').trim());
+                        return num > 0 && num < 100000; // Reasonable price range
+                    });
+
+                if (validPrices.length >= 2) {
+                    // If we find multiple valid prices, assume first is sale, second is original
+                    salePrice = validPrices[0];
+                    originalPrice = validPrices[1];
+                    break;
+                }
             } else if (priceMatches && priceMatches.length === 1) {
-                prices.push(priceMatches[0]);
+                const cleaned = priceMatches[0].replace(/\s+/g, ' ').trim();
+                const num = parseFloat(cleaned.replace('€', '').replace(',', '.').trim());
+                if (num > 0 && num < 100000) {
+                    prices.push(cleaned);
+                }
             }
 
             const classes = priceEl.className.toLowerCase();
