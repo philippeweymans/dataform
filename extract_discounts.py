@@ -89,7 +89,7 @@ def get_discount_percentage(product_element, driver):
     return 0
 
 
-def extract_product_info(product_element):
+def extract_product_info(product_element, driver):
     """Extract product information"""
     info = {
         'title': 'N/A',
@@ -126,18 +126,43 @@ def extract_product_info(product_element):
     except:
         pass
 
-    # Prices
+    # Prices - Enhanced extraction
     try:
         price_elements = product_element.find_elements(By.CSS_SELECTOR, '[class*="price"], [class*="Price"]')
+        prices = []
 
         for elem in price_elements:
+            price_text = elem.text.strip()
             classes = elem.get_attribute('class').lower()
             style = elem.get_attribute('style') or ''
 
-            if 'original' in classes or 'old' in classes or 'line-through' in style:
-                info['original_price'] = elem.text.strip()
-            elif 'sale' in classes or 'current' in classes or 'special' in classes:
-                info['sale_price'] = elem.text.strip()
+            # Check computed styles for line-through
+            try:
+                is_strikethrough = driver.execute_script(
+                    "return window.getComputedStyle(arguments[0]).textDecoration.includes('line-through');",
+                    elem
+                ) or 'line-through' in style
+            except:
+                is_strikethrough = 'line-through' in style
+
+            # Check for original/old price indicators
+            if 'original' in classes or 'old' in classes or 'was' in classes or 'before' in classes or is_strikethrough:
+                info['original_price'] = price_text
+            # Check for sale/current price indicators
+            elif 'sale' in classes or 'current' in classes or 'special' in classes or 'now' in classes or 'final' in classes:
+                info['sale_price'] = price_text
+            # Collect all prices if we can't identify them
+            elif price_text and re.search(r'[€$£]\s*\d+|^\d+[.,]\d+', price_text):
+                prices.append(price_text)
+
+        # If we couldn't identify prices, use heuristic: first is usually sale, second is original
+        if info['original_price'] == 'N/A' and info['sale_price'] == 'N/A' and len(prices) >= 2:
+            info['sale_price'] = prices[0]
+            info['original_price'] = prices[1]
+        elif info['original_price'] == 'N/A' and len(prices) >= 1:
+            info['original_price'] = prices[0]
+        elif info['sale_price'] == 'N/A' and len(prices) >= 1:
+            info['sale_price'] = prices[0]
     except:
         pass
 
@@ -208,7 +233,7 @@ def main():
                 discount = get_discount_percentage(product, driver)
 
                 if discount > 25:
-                    info = extract_product_info(product)
+                    info = extract_product_info(product, driver)
                     info['discount'] = f"{discount:.2f}"
                     high_discount_products.append(info)
 
@@ -220,10 +245,9 @@ def main():
 
                     print(f"  ✓ [{i+1}] {info['title'][:50]}... - {discount:.1f}% OFF")
                 else:
-                    # Fade out low discount items
+                    # Hide low discount items completely
                     driver.execute_script("""
-                        arguments[0].style.opacity = '0.3';
-                        arguments[0].style.filter = 'grayscale(100%)';
+                        arguments[0].style.display = 'none';
                     """, product)
 
             except Exception as e:

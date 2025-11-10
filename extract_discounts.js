@@ -80,16 +80,42 @@
         const imgEl = element.querySelector('img');
         const image = imgEl ? imgEl.src : '';
 
+        // Enhanced price extraction
         const priceEls = element.querySelectorAll('[class*="price"], [class*="Price"]');
         let originalPrice = 'N/A';
         let salePrice = 'N/A';
+        let prices = [];
 
         for (let priceEl of priceEls) {
-            if (priceEl.className.match(/original|old/i) || priceEl.style.textDecoration === 'line-through') {
-                originalPrice = priceEl.textContent.trim();
-            } else if (priceEl.className.match(/sale|current|special/i)) {
-                salePrice = priceEl.textContent.trim();
+            const priceText = priceEl.textContent.trim();
+            const classes = priceEl.className.toLowerCase();
+            const styles = priceEl.style.cssText.toLowerCase();
+            const computedStyle = window.getComputedStyle(priceEl);
+            const isStrikethrough = computedStyle.textDecoration.includes('line-through') ||
+                                   styles.includes('line-through');
+
+            // Check for original/old price indicators
+            if (classes.match(/original|old|was|before/i) || isStrikethrough) {
+                originalPrice = priceText;
             }
+            // Check for sale/current price indicators
+            else if (classes.match(/sale|current|special|now|final/i)) {
+                salePrice = priceText;
+            }
+            // Collect all prices if we can't identify them
+            else if (priceText.match(/[€$£]\s*\d+|^\d+[.,]\d+/)) {
+                prices.push(priceText);
+            }
+        }
+
+        // If we couldn't identify prices, use heuristic: first is usually sale, second is original
+        if (originalPrice === 'N/A' && salePrice === 'N/A' && prices.length >= 2) {
+            salePrice = prices[0];
+            originalPrice = prices[1];
+        } else if (originalPrice === 'N/A' && prices.length >= 1) {
+            originalPrice = prices[0];
+        } else if (salePrice === 'N/A' && prices.length >= 1) {
+            salePrice = prices[0];
         }
 
         return { title, link, image, originalPrice, salePrice };
@@ -182,12 +208,11 @@
         }
     });
 
-    // Hide products with ≤25% discount
+    // Hide products with ≤25% discount completely
     products.forEach(product => {
         const discount = getDiscountPercentage(product);
         if (discount <= 25) {
-            product.style.opacity = '0.3';
-            product.style.filter = 'grayscale(100%)';
+            product.style.display = 'none';
         }
     });
 
@@ -246,7 +271,7 @@
         <strong>Discount Filter Results</strong><br>
         Total Products: ${products.length}<br>
         >25% Discount: ${highDiscountProducts.length}<br>
-        <small>Highlighted in red | Others faded</small>
+        <small>Showing only >25% discounts</small>
     `;
     summary.style.cssText = `
         position: fixed;
@@ -263,8 +288,8 @@
 
     document.body.appendChild(summary);
 
-    console.log(`\n✅ Done! Highlighted ${highDiscountProducts.length} products with >25% discount.`);
-    console.log('💡 Products with ≤25% are faded out.');
+    console.log(`\n✅ Done! Showing ${highDiscountProducts.length} products with >25% discount.`);
+    console.log('💡 Products with ≤25% discount are hidden.');
 
     return highDiscountProducts;
 })();
