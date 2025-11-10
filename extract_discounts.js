@@ -14,61 +14,26 @@
 
     console.log('🔍 Starting discount filter...');
 
-    // Function to extract discount percentage from various formats
+    // Function to extract discount percentage from the listing
     function getDiscountPercentage(element) {
-        // FIRST: Try to calculate from prices (most reliable)
-        let originalPrice = null;
-        let salePrice = null;
-
-        // Extract prices from the text
+        // The discount is already displayed on the page
+        // Look for percentage in the product text
         const allText = element.textContent;
-        const priceMatches = allText.match(/€\s*\d{1,6}[.,]\d{2}/g);
 
-        if (priceMatches && priceMatches.length >= 2) {
-            // Clean and parse prices
-            const prices = priceMatches
-                .map(p => parseFloat(p.replace('€', '').replace(',', '.').trim()))
-                .filter(p => p > 0 && p < 100000);
+        // Look for patterns like "30%", "30% OFF", "korting 30%", etc.
+        const percentPattern = /(?:korting|save|off)?\s*(\d+)\s*%|(\d+)\s*%\s*(?:korting|save|off)/gi;
+        const matches = allText.match(percentPattern);
 
-            if (prices.length >= 2) {
-                // Sort prices: highest first
-                prices.sort((a, b) => b - a);
-                originalPrice = prices[0];
-                salePrice = prices[1];
+        if (matches) {
+            // Extract just the numbers
+            const percentages = matches.map(match => {
+                const num = match.match(/(\d+)/);
+                return num ? parseInt(num[1]) : 0;
+            }).filter(p => p > 0 && p <= 90); // Filter reasonable discounts
 
-                // Calculate discount
-                if (originalPrice > salePrice) {
-                    const discount = ((originalPrice - salePrice) / originalPrice) * 100;
-                    // Only return if it's a reasonable discount (5-90%)
-                    if (discount >= 5 && discount <= 90) {
-                        return discount;
-                    }
-                }
-            }
-        }
-
-        // SECOND: Look for explicit discount percentage (but be strict)
-        // Only look in specific discount badge elements, not all text
-        const discountBadgeSelectors = [
-            '[class*="discount"]',
-            '[class*="Discount"]',
-            '[class*="badge"]',
-            '[class*="label"]'
-        ];
-
-        for (let selector of discountBadgeSelectors) {
-            const badges = element.querySelectorAll(selector);
-            for (let badge of badges) {
-                const text = badge.textContent.trim();
-                // Must have % and OFF/korting nearby
-                const match = text.match(/(\d+)\s*%\s*(?:OFF|off|korting|KORTING)/i);
-                if (match) {
-                    const percent = parseFloat(match[1]);
-                    // Only accept reasonable discounts
-                    if (percent >= 5 && percent <= 90) {
-                        return percent;
-                    }
-                }
+            if (percentages.length > 0) {
+                // Return the first valid percentage found
+                return percentages[0];
             }
         }
 
