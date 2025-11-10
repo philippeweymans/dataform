@@ -170,6 +170,9 @@
         return;
     }
 
+    // Convert NodeList to Array for easier manipulation
+    const productsArray = Array.from(products);
+
     // Remove all non-product elements (header, footer, banners, etc.)
     const removeSelectors = [
         'header',
@@ -208,7 +211,7 @@
     removeSelectors.forEach(selector => {
         document.querySelectorAll(selector).forEach(elem => {
             // Don't remove if it contains products
-            const containsProducts = products.some(product => elem.contains(product));
+            const containsProducts = productsArray.some(product => elem.contains(product));
             if (!containsProducts) {
                 elem.remove();
             }
@@ -218,7 +221,7 @@
     // Also remove any standalone text/promotional content
     document.querySelectorAll('section, div, aside').forEach(elem => {
         // Remove if it doesn't contain any products and has promotional keywords
-        const containsProducts = Array.from(products).some(product => elem.contains(product));
+        const containsProducts = productsArray.some(product => elem.contains(product));
         const text = elem.textContent.toLowerCase();
         const isPromotional = text.includes('shop now') || text.includes('subscribe') ||
                              text.includes('newsletter') || text.includes('follow us') ||
