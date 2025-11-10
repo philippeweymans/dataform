@@ -126,13 +126,25 @@
         const image = imgEl ? imgEl.src : '';
 
         // Enhanced price extraction
-        const priceEls = element.querySelectorAll('[class*="price"], [class*="Price"]');
+        const priceEls = element.querySelectorAll('[class*="price"], [class*="Price"], span, div');
         let originalPrice = 'N/A';
         let salePrice = 'N/A';
         let prices = [];
 
         for (let priceEl of priceEls) {
             const priceText = priceEl.textContent.trim();
+
+            // Extract all prices from the text (handles multiple prices in one element)
+            const priceMatches = priceText.match(/€\s*[\d.,]+/g);
+            if (priceMatches && priceMatches.length >= 2) {
+                // If we find multiple prices in one element, assume first is sale, second is original
+                salePrice = priceMatches[0];
+                originalPrice = priceMatches[1];
+                break;
+            } else if (priceMatches && priceMatches.length === 1) {
+                prices.push(priceMatches[0]);
+            }
+
             const classes = priceEl.className.toLowerCase();
             const styles = priceEl.style.cssText.toLowerCase();
             const computedStyle = window.getComputedStyle(priceEl);
@@ -140,20 +152,16 @@
                                    styles.includes('line-through');
 
             // Check for original/old price indicators
-            if (classes.match(/original|old|was|before/i) || isStrikethrough) {
-                originalPrice = priceText;
+            if ((classes.match(/original|old|was|before/i) || isStrikethrough) && priceMatches) {
+                originalPrice = priceMatches[0];
             }
             // Check for sale/current price indicators
-            else if (classes.match(/sale|current|special|now|final/i)) {
-                salePrice = priceText;
-            }
-            // Collect all prices if we can't identify them
-            else if (priceText.match(/[€$£]\s*\d+|^\d+[.,]\d+/)) {
-                prices.push(priceText);
+            else if (classes.match(/sale|current|special|now|final/i) && priceMatches) {
+                salePrice = priceMatches[0];
             }
         }
 
-        // If we couldn't identify prices, use heuristic: first is usually sale, second is original
+        // If we couldn't identify prices, use collected prices
         if (originalPrice === 'N/A' && salePrice === 'N/A' && prices.length >= 2) {
             salePrice = prices[0];
             originalPrice = prices[1];
@@ -269,8 +277,9 @@
     document.body.style.padding = '20px';
     document.body.style.backgroundColor = '#f5f5f5';
 
-    // Filter products with >25% discount
+    // Filter products with >25% discount and keep references
     const highDiscountProducts = [];
+    const highDiscountElements = [];
 
     console.log('🔍 Analyzing discounts...');
     products.forEach((product, index) => {
@@ -288,12 +297,10 @@
                 ...info
             });
 
-            // Highlight the product visually
-            product.style.border = '3px solid #ff4444';
-            product.style.boxShadow = '0 0 10px rgba(255, 68, 68, 0.5)';
-            product.style.position = 'relative';
+            // Keep reference to the element
+            highDiscountElements.push(product);
 
-            // Add badge
+            // Add discount badge
             const badge = document.createElement('div');
             badge.innerHTML = `🔥 ${discount.toFixed(1)}% OFF`;
             badge.style.cssText = `
@@ -315,15 +322,6 @@
 
     console.log(`Found ${highDiscountProducts.length} products with >25% discount out of ${products.length} total`);
 
-    // Remove products with ≤25% discount completely (not just hide)
-    console.log('🗑️  Removing low-discount items...');
-    products.forEach(product => {
-        const discount = getDiscountPercentage(product);
-        if (discount <= 25) {
-            product.remove(); // Remove from DOM entirely to eliminate gaps
-        }
-    });
-
     // Create a new clean container for high-discount products
     console.log('📐 Reorganizing layout...');
     const newContainer = document.createElement('div');
@@ -338,44 +336,23 @@
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     `;
 
-    // Move remaining products to new container
-    const remainingProducts = document.querySelectorAll(productSelectors.find(sel => {
-        const test = document.querySelectorAll(sel);
-        return test.length > 0;
-    }));
-
-    remainingProducts.forEach(product => {
-        // Only move if it still exists (wasn't removed)
-        if (product.parentElement) {
-            newContainer.appendChild(product);
-            // Clean up product styling
-            product.style.margin = '0';
-            product.style.display = 'block';
-        }
+    // Move high-discount products to new container
+    highDiscountElements.forEach(product => {
+        // Clone the product to preserve it
+        const clone = product.cloneNode(true);
+        // Clean up styling
+        clone.style.margin = '0';
+        clone.style.display = 'block';
+        clone.style.border = '3px solid #ff4444';
+        clone.style.boxShadow = '0 0 10px rgba(255, 68, 68, 0.5)';
+        newContainer.appendChild(clone);
     });
 
     // Replace body content with new container
     document.body.innerHTML = '';
     document.body.appendChild(newContainer);
 
-    // Display results
-    console.log('\n' + '='.repeat(60));
-    console.log(`🎯 Found ${highDiscountProducts.length} items with >25% discount:`);
-    console.log('='.repeat(60) + '\n');
-
-    highDiscountProducts.forEach((item, index) => {
-        console.log(`${index + 1}. ${item.title}`);
-        console.log(`   💰 Discount: ${item.discount}%`);
-        console.log(`   💵 Original: ${item.originalPrice} → Sale: ${item.salePrice}`);
-        console.log(`   🔗 ${item.link}`);
-        console.log('');
-    });
-
-    // Create exportable data
-    console.log('\n📊 Export data (copy as JSON):');
-    console.log(JSON.stringify(highDiscountProducts, null, 2));
-
-    // Add download button
+    // Re-add download button
     const downloadBtn = document.createElement('button');
     downloadBtn.innerHTML = '📥 Download Results (>25% off)';
     downloadBtn.style.cssText = `
@@ -393,7 +370,6 @@
         cursor: pointer;
         box-shadow: 0 4px 6px rgba(0,0,0,0.3);
     `;
-
     downloadBtn.onclick = function() {
         const dataStr = JSON.stringify(highDiscountProducts, null, 2);
         const blob = new Blob([dataStr], { type: 'application/json' });
@@ -404,16 +380,14 @@
         a.click();
         URL.revokeObjectURL(url);
     };
-
     document.body.appendChild(downloadBtn);
 
-    // Summary overlay
+    // Re-add summary overlay
     const summary = document.createElement('div');
     summary.innerHTML = `
-        <strong>Discount Filter Results</strong><br>
-        Total Products: ${products.length}<br>
-        >25% Discount: ${highDiscountProducts.length}<br>
-        <small>Showing only >25% discounts</small>
+        <strong>✅ Discount Filter Active</strong><br>
+        Showing: ${highDiscountProducts.length} products<br>
+        <small>All with >25% discount</small>
     `;
     summary.style.cssText = `
         position: fixed;
@@ -427,8 +401,24 @@
         font-size: 14px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.3);
     `;
-
     document.body.appendChild(summary);
+
+    // Display results
+    console.log('\n' + '='.repeat(60));
+    console.log(`🎯 Found ${highDiscountProducts.length} items with >25% discount:`);
+    console.log('='.repeat(60) + '\n');
+
+    highDiscountProducts.forEach((item, index) => {
+        console.log(`${index + 1}. ${item.title}`);
+        console.log(`   💰 Discount: ${item.discount}%`);
+        console.log(`   💵 Original: ${item.originalPrice} → Sale: ${item.salePrice}`);
+        console.log(`   🔗 ${item.link}`);
+        console.log('');
+    });
+
+    // Create exportable data
+    console.log('\n📊 Export data (copy as JSON):');
+    console.log(JSON.stringify(highDiscountProducts, null, 2));
 
     console.log(`\n✅ Done! Showing ${highDiscountProducts.length} products with >25% discount.`);
     console.log('💡 Products with ≤25% discount are hidden.');
