@@ -16,48 +16,93 @@
 
     // Function to extract discount percentage from various formats
     function getDiscountPercentage(element) {
-        // Look for discount percentage in various places
+        // First, look for any text with percentage
+        const allText = element.textContent;
+        const percentMatches = allText.match(/(\d+(?:\.\d+)?)\s*%\s*(?:OFF|off|korting|KORTING)?/gi);
+
+        if (percentMatches) {
+            // Extract the highest percentage found
+            const percentages = percentMatches.map(match => {
+                const num = match.match(/(\d+(?:\.\d+)?)/);
+                return num ? parseFloat(num[1]) : 0;
+            });
+            const maxPercent = Math.max(...percentages);
+            if (maxPercent > 0 && maxPercent <= 100) {
+                return maxPercent;
+            }
+        }
+
+        // Look for discount in specific elements
         const discountSelectors = [
-            '.discount-percentage',
-            '.discount-percent',
-            '.sale-percent',
             '[class*="discount"]',
+            '[class*="Discount"]',
             '[class*="percent"]',
-            '[class*="save"]'
+            '[class*="Percent"]',
+            '[class*="save"]',
+            '[class*="Save"]',
+            '[class*="off"]',
+            '[class*="Off"]',
+            'span',
+            'div'
         ];
 
         for (let selector of discountSelectors) {
-            const discountEl = element.querySelector(selector);
-            if (discountEl) {
-                const text = discountEl.textContent;
+            const elements = element.querySelectorAll(selector);
+            for (let el of elements) {
+                const text = el.textContent.trim();
                 const match = text.match(/(\d+(?:\.\d+)?)\s*%/);
                 if (match) {
-                    return parseFloat(match[1]);
+                    const percent = parseFloat(match[1]);
+                    if (percent > 0 && percent <= 100) {
+                        return percent;
+                    }
                 }
             }
         }
 
         // Calculate from prices if percentage not found
-        const priceSelectors = [
-            '.price-original, .original-price, .old-price, [class*="original"]',
-            '.price-sale, .sale-price, .current-price, [class*="sale"], [class*="current"]'
-        ];
-
         let originalPrice = null;
         let salePrice = null;
 
-        // Try to find prices
-        const allPrices = element.querySelectorAll('[class*="price"], [class*="Price"]');
-        for (let priceEl of allPrices) {
-            const text = priceEl.textContent.replace(/[^\d.,]/g, '').replace(',', '.');
-            const price = parseFloat(text);
+        // Try to find prices - look at ALL elements with numbers
+        const allPrices = element.querySelectorAll('[class*="price"], [class*="Price"], span, div');
+        const priceValues = [];
 
-            if (!isNaN(price)) {
-                if (priceEl.className.match(/original|old/i) || priceEl.style.textDecoration === 'line-through') {
-                    originalPrice = price;
-                } else if (priceEl.className.match(/sale|current|special/i)) {
-                    salePrice = price;
+        for (let priceEl of allPrices) {
+            const text = priceEl.textContent.trim();
+            // Look for price patterns
+            const priceMatch = text.match(/€?\s*(\d+[.,]\d+)/);
+            if (priceMatch) {
+                const price = parseFloat(priceMatch[1].replace(',', '.'));
+                if (!isNaN(price) && price > 0) {
+                    const computedStyle = window.getComputedStyle(priceEl);
+                    const isStrikethrough = computedStyle.textDecoration.includes('line-through');
+                    const classes = priceEl.className.toLowerCase();
+
+                    if (isStrikethrough || classes.includes('original') || classes.includes('old') || classes.includes('was')) {
+                        originalPrice = price;
+                    } else if (classes.includes('sale') || classes.includes('current') || classes.includes('special') || classes.includes('now')) {
+                        salePrice = price;
+                    } else {
+                        priceValues.push({ price, element: priceEl, isStrikethrough });
+                    }
                 }
+            }
+        }
+
+        // If we found strikethrough, that's original; assume first non-strikethrough is sale
+        if (!originalPrice || !salePrice) {
+            const strikethrough = priceValues.filter(p => p.isStrikethrough);
+            const regular = priceValues.filter(p => !p.isStrikethrough);
+
+            if (strikethrough.length > 0 && regular.length > 0) {
+                originalPrice = Math.max(...strikethrough.map(p => p.price));
+                salePrice = Math.min(...regular.map(p => p.price));
+            } else if (priceValues.length >= 2) {
+                // Assume higher is original, lower is sale
+                const prices = priceValues.map(p => p.price).sort((a, b) => b - a);
+                originalPrice = prices[0];
+                salePrice = prices[1];
             }
         }
 
@@ -227,8 +272,14 @@
     // Filter products with >25% discount
     const highDiscountProducts = [];
 
+    console.log('🔍 Analyzing discounts...');
     products.forEach((product, index) => {
         const discount = getDiscountPercentage(product);
+
+        // Debug: log first 3 products
+        if (index < 3) {
+            console.log(`Product ${index + 1}: ${discount.toFixed(1)}% discount`);
+        }
 
         if (discount > 25) {
             const info = extractProductInfo(product);
@@ -261,6 +312,8 @@
             product.insertBefore(badge, product.firstChild);
         }
     });
+
+    console.log(`Found ${highDiscountProducts.length} products with >25% discount out of ${products.length} total`);
 
     // Remove products with ≤25% discount completely (not just hide)
     console.log('🗑️  Removing low-discount items...');
