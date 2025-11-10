@@ -16,99 +16,60 @@
 
     // Function to extract discount percentage from various formats
     function getDiscountPercentage(element) {
-        // First, look for any text with percentage
-        const allText = element.textContent;
-        const percentMatches = allText.match(/(\d+(?:\.\d+)?)\s*%\s*(?:OFF|off|korting|KORTING)?/gi);
+        // FIRST: Try to calculate from prices (most reliable)
+        let originalPrice = null;
+        let salePrice = null;
 
-        if (percentMatches) {
-            // Extract the highest percentage found
-            const percentages = percentMatches.map(match => {
-                const num = match.match(/(\d+(?:\.\d+)?)/);
-                return num ? parseFloat(num[1]) : 0;
-            });
-            const maxPercent = Math.max(...percentages);
-            if (maxPercent > 0 && maxPercent <= 100) {
-                return maxPercent;
+        // Extract prices from the text
+        const allText = element.textContent;
+        const priceMatches = allText.match(/€\s*\d{1,6}[.,]\d{2}/g);
+
+        if (priceMatches && priceMatches.length >= 2) {
+            // Clean and parse prices
+            const prices = priceMatches
+                .map(p => parseFloat(p.replace('€', '').replace(',', '.').trim()))
+                .filter(p => p > 0 && p < 100000);
+
+            if (prices.length >= 2) {
+                // Sort prices: highest first
+                prices.sort((a, b) => b - a);
+                originalPrice = prices[0];
+                salePrice = prices[1];
+
+                // Calculate discount
+                if (originalPrice > salePrice) {
+                    const discount = ((originalPrice - salePrice) / originalPrice) * 100;
+                    // Only return if it's a reasonable discount (5-90%)
+                    if (discount >= 5 && discount <= 90) {
+                        return discount;
+                    }
+                }
             }
         }
 
-        // Look for discount in specific elements
-        const discountSelectors = [
+        // SECOND: Look for explicit discount percentage (but be strict)
+        // Only look in specific discount badge elements, not all text
+        const discountBadgeSelectors = [
             '[class*="discount"]',
             '[class*="Discount"]',
-            '[class*="percent"]',
-            '[class*="Percent"]',
-            '[class*="save"]',
-            '[class*="Save"]',
-            '[class*="off"]',
-            '[class*="Off"]',
-            'span',
-            'div'
+            '[class*="badge"]',
+            '[class*="label"]'
         ];
 
-        for (let selector of discountSelectors) {
-            const elements = element.querySelectorAll(selector);
-            for (let el of elements) {
-                const text = el.textContent.trim();
-                const match = text.match(/(\d+(?:\.\d+)?)\s*%/);
+        for (let selector of discountBadgeSelectors) {
+            const badges = element.querySelectorAll(selector);
+            for (let badge of badges) {
+                const text = badge.textContent.trim();
+                // Must have % and OFF/korting nearby
+                const match = text.match(/(\d+)\s*%\s*(?:OFF|off|korting|KORTING)/i);
                 if (match) {
                     const percent = parseFloat(match[1]);
-                    if (percent > 0 && percent <= 100) {
+                    // Only accept reasonable discounts
+                    if (percent >= 5 && percent <= 90) {
                         return percent;
                     }
                 }
             }
-        }
-
-        // Calculate from prices if percentage not found
-        let originalPrice = null;
-        let salePrice = null;
-
-        // Try to find prices - look at ALL elements with numbers
-        const allPrices = element.querySelectorAll('[class*="price"], [class*="Price"], span, div');
-        const priceValues = [];
-
-        for (let priceEl of allPrices) {
-            const text = priceEl.textContent.trim();
-            // Look for price patterns
-            const priceMatch = text.match(/€?\s*(\d+[.,]\d+)/);
-            if (priceMatch) {
-                const price = parseFloat(priceMatch[1].replace(',', '.'));
-                if (!isNaN(price) && price > 0) {
-                    const computedStyle = window.getComputedStyle(priceEl);
-                    const isStrikethrough = computedStyle.textDecoration.includes('line-through');
-                    const classes = priceEl.className.toLowerCase();
-
-                    if (isStrikethrough || classes.includes('original') || classes.includes('old') || classes.includes('was')) {
-                        originalPrice = price;
-                    } else if (classes.includes('sale') || classes.includes('current') || classes.includes('special') || classes.includes('now')) {
-                        salePrice = price;
-                    } else {
-                        priceValues.push({ price, element: priceEl, isStrikethrough });
-                    }
-                }
-            }
-        }
-
-        // If we found strikethrough, that's original; assume first non-strikethrough is sale
-        if (!originalPrice || !salePrice) {
-            const strikethrough = priceValues.filter(p => p.isStrikethrough);
-            const regular = priceValues.filter(p => !p.isStrikethrough);
-
-            if (strikethrough.length > 0 && regular.length > 0) {
-                originalPrice = Math.max(...strikethrough.map(p => p.price));
-                salePrice = Math.min(...regular.map(p => p.price));
-            } else if (priceValues.length >= 2) {
-                // Assume higher is original, lower is sale
-                const prices = priceValues.map(p => p.price).sort((a, b) => b - a);
-                originalPrice = prices[0];
-                salePrice = prices[1];
-            }
-        }
-
-        // If we have both prices, calculate discount
-        if (originalPrice && salePrice && originalPrice > salePrice) {
-            return ((originalPrice - salePrice) / originalPrice) * 100;
         }
 
         return 0;
