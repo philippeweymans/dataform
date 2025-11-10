@@ -173,64 +173,56 @@
     // Convert NodeList to Array for easier manipulation
     const productsArray = Array.from(products);
 
-    // Remove all non-product elements (header, footer, banners, etc.)
-    const removeSelectors = [
-        'header',
-        'footer',
-        '.header',
-        '.footer',
-        '[class*="header"]',
-        '[class*="Header"]',
-        '[class*="footer"]',
-        '[class*="Footer"]',
-        'nav',
-        '.nav',
-        '.navbar',
-        '.navigation',
-        '[role="banner"]',
-        '[role="contentinfo"]',
-        '[class*="top-bar"]',
-        '[class*="topbar"]',
-        '[class*="banner"]',
-        '[class*="Banner"]',
-        '[class*="promo"]',
-        '[class*="Promo"]',
-        '[class*="hero"]',
-        '[class*="breadcrumb"]',
-        '[class*="sidebar"]',
-        '[class*="Sidebar"]',
-        '[class*="filter"]',
-        '[class*="Filter"]',
-        '[class*="sort"]',
-        '[class*="Sort"]',
-        '.ads',
-        '[class*="advertisement"]'
-    ];
+    console.log('🗑️  Cleaning up page...');
 
-    console.log('🗑️  Removing non-product elements...');
-    removeSelectors.forEach(selector => {
-        document.querySelectorAll(selector).forEach(elem => {
-            // Don't remove if it contains products
-            const containsProducts = productsArray.some(product => elem.contains(product));
-            if (!containsProducts) {
-                elem.remove();
+    // Find the main container that holds all products
+    let productContainer = products[0]?.parentElement;
+    while (productContainer && productContainer !== document.body) {
+        // Check if this container holds most/all products
+        const childProducts = Array.from(productContainer.children).filter(child =>
+            productsArray.some(p => child.contains(p))
+        );
+        if (childProducts.length >= productsArray.length * 0.8) {
+            break;
+        }
+        productContainer = productContainer.parentElement;
+    }
+
+    console.log('📦 Found product container:', productContainer?.className || productContainer?.tagName);
+
+    // Remove EVERYTHING from body except the product container and its parents
+    if (productContainer) {
+        // Mark the container and its parents to keep them
+        let elem = productContainer;
+        const keepElements = new Set();
+        while (elem && elem !== document.body) {
+            keepElements.add(elem);
+            elem = elem.parentElement;
+        }
+
+        // Remove all direct children of body that we don't need
+        Array.from(document.body.children).forEach(child => {
+            if (!keepElements.has(child) && child.tagName !== 'SCRIPT' && child.tagName !== 'STYLE') {
+                child.remove();
             }
         });
-    });
 
-    // Also remove any standalone text/promotional content
-    document.querySelectorAll('section, div, aside').forEach(elem => {
-        // Remove if it doesn't contain any products and has promotional keywords
-        const containsProducts = productsArray.some(product => elem.contains(product));
-        const text = elem.textContent.toLowerCase();
-        const isPromotional = text.includes('shop now') || text.includes('subscribe') ||
-                             text.includes('newsletter') || text.includes('follow us') ||
-                             text.includes('contact') || text.includes('about');
+        // Remove siblings of our container path
+        keepElements.forEach(keeper => {
+            if (keeper.parentElement) {
+                Array.from(keeper.parentElement.children).forEach(sibling => {
+                    if (!keepElements.has(sibling) && !sibling.contains(productContainer)) {
+                        sibling.remove();
+                    }
+                });
+            }
+        });
+    }
 
-        if (!containsProducts && (isPromotional || elem.children.length === 0)) {
-            elem.remove();
-        }
-    });
+    // Clean up body styling
+    document.body.style.margin = '0';
+    document.body.style.padding = '20px';
+    document.body.style.backgroundColor = '#f5f5f5';
 
     // Filter products with >25% discount
     const highDiscountProducts = [];
@@ -271,6 +263,7 @@
     });
 
     // Remove products with ≤25% discount completely (not just hide)
+    console.log('🗑️  Removing low-discount items...');
     products.forEach(product => {
         const discount = getDiscountPercentage(product);
         if (discount <= 25) {
@@ -278,14 +271,39 @@
         }
     });
 
-    // Fix container layout to remove gaps
-    const containers = document.querySelectorAll('[class*="product-list"], [class*="goods-list"], [class*="list"], .row, .grid');
-    containers.forEach(container => {
-        // Remove any empty space/gaps
-        container.style.gap = '20px';
-        container.style.display = 'grid';
-        container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(250px, 1fr))';
+    // Create a new clean container for high-discount products
+    console.log('📐 Reorganizing layout...');
+    const newContainer = document.createElement('div');
+    newContainer.style.cssText = `
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+        padding: 20px;
+        max-width: 1400px;
+        margin: 0 auto;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    `;
+
+    // Move remaining products to new container
+    const remainingProducts = document.querySelectorAll(productSelectors.find(sel => {
+        const test = document.querySelectorAll(sel);
+        return test.length > 0;
+    }));
+
+    remainingProducts.forEach(product => {
+        // Only move if it still exists (wasn't removed)
+        if (product.parentElement) {
+            newContainer.appendChild(product);
+            // Clean up product styling
+            product.style.margin = '0';
+            product.style.display = 'block';
+        }
     });
+
+    // Replace body content with new container
+    document.body.innerHTML = '';
+    document.body.appendChild(newContainer);
 
     // Display results
     console.log('\n' + '='.repeat(60));
