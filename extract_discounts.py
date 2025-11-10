@@ -224,6 +224,25 @@ def main():
             print("💡 Please inspect the page HTML and update selectors accordingly.")
             return
 
+        # Remove header elements
+        print("🗑️  Removing header...")
+        driver.execute_script("""
+            const headerSelectors = [
+                'header', '.header', '[class*="header"]', '[class*="Header"]',
+                'nav', '.nav', '.navbar', '.navigation', '[role="banner"]',
+                '[class*="top-bar"]', '[class*="topbar"]'
+            ];
+
+            headerSelectors.forEach(selector => {
+                document.querySelectorAll(selector).forEach(header => {
+                    const rect = header.getBoundingClientRect();
+                    if (rect.top < 200 || header.tagName === 'HEADER' || header.tagName === 'NAV') {
+                        header.style.display = 'none';
+                    }
+                });
+            });
+        """)
+
         # Extract products with >25% discount
         high_discount_products = []
 
@@ -245,14 +264,25 @@ def main():
 
                     print(f"  ✓ [{i+1}] {info['title'][:50]}... - {discount:.1f}% OFF")
                 else:
-                    # Hide low discount items completely
+                    # Remove low discount items completely from DOM
                     driver.execute_script("""
-                        arguments[0].style.display = 'none';
+                        arguments[0].remove();
                     """, product)
 
             except Exception as e:
                 print(f"  ⚠️  Error processing product {i+1}: {e}")
                 continue
+
+        # Fix container layout to remove gaps
+        print("📐 Reorganizing layout...")
+        driver.execute_script("""
+            const containers = document.querySelectorAll('[class*="product-list"], [class*="goods-list"], [class*="list"], .row, .grid');
+            containers.forEach(container => {
+                container.style.gap = '20px';
+                container.style.display = 'grid';
+                container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(250px, 1fr))';
+            });
+        """)
 
         # Display results
         print("\n" + "="*60)

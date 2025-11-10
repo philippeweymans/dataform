@@ -170,6 +170,31 @@
         return;
     }
 
+    // Remove header elements
+    const headerSelectors = [
+        'header',
+        '.header',
+        '[class*="header"]',
+        '[class*="Header"]',
+        'nav',
+        '.nav',
+        '.navbar',
+        '.navigation',
+        '[role="banner"]',
+        '[class*="top-bar"]',
+        '[class*="topbar"]'
+    ];
+
+    headerSelectors.forEach(selector => {
+        document.querySelectorAll(selector).forEach(header => {
+            // Only remove if it's actually a header (top of page, not product header)
+            const rect = header.getBoundingClientRect();
+            if (rect.top < 200 || header.tagName === 'HEADER' || header.tagName === 'NAV') {
+                header.style.display = 'none';
+            }
+        });
+    });
+
     // Filter products with >25% discount
     const highDiscountProducts = [];
 
@@ -208,12 +233,21 @@
         }
     });
 
-    // Hide products with ≤25% discount completely
+    // Remove products with ≤25% discount completely (not just hide)
     products.forEach(product => {
         const discount = getDiscountPercentage(product);
         if (discount <= 25) {
-            product.style.display = 'none';
+            product.remove(); // Remove from DOM entirely to eliminate gaps
         }
+    });
+
+    // Fix container layout to remove gaps
+    const containers = document.querySelectorAll('[class*="product-list"], [class*="goods-list"], [class*="list"], .row, .grid');
+    containers.forEach(container => {
+        // Remove any empty space/gaps
+        container.style.gap = '20px';
+        container.style.display = 'grid';
+        container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(250px, 1fr))';
     });
 
     // Display results
