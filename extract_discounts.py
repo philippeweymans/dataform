@@ -224,24 +224,49 @@ def main():
             print("💡 Please inspect the page HTML and update selectors accordingly.")
             return
 
-        # Remove header elements
-        print("🗑️  Removing header...")
+        # Remove all non-product elements (header, footer, banners, etc.)
+        print("🗑️  Removing non-product elements...")
         driver.execute_script("""
-            const headerSelectors = [
-                'header', '.header', '[class*="header"]', '[class*="Header"]',
-                'nav', '.nav', '.navbar', '.navigation', '[role="banner"]',
-                '[class*="top-bar"]', '[class*="topbar"]'
+            const products = arguments[0];
+
+            const removeSelectors = [
+                'header', 'footer', '.header', '.footer',
+                '[class*="header"]', '[class*="Header"]',
+                '[class*="footer"]', '[class*="Footer"]',
+                'nav', '.nav', '.navbar', '.navigation',
+                '[role="banner"]', '[role="contentinfo"]',
+                '[class*="top-bar"]', '[class*="topbar"]',
+                '[class*="banner"]', '[class*="Banner"]',
+                '[class*="promo"]', '[class*="Promo"]',
+                '[class*="hero"]', '[class*="breadcrumb"]',
+                '[class*="sidebar"]', '[class*="Sidebar"]',
+                '[class*="filter"]', '[class*="Filter"]',
+                '[class*="sort"]', '[class*="Sort"]',
+                '.ads', '[class*="advertisement"]'
             ];
 
-            headerSelectors.forEach(selector => {
-                document.querySelectorAll(selector).forEach(header => {
-                    const rect = header.getBoundingClientRect();
-                    if (rect.top < 200 || header.tagName === 'HEADER' || header.tagName === 'NAV') {
-                        header.style.display = 'none';
+            removeSelectors.forEach(selector => {
+                document.querySelectorAll(selector).forEach(elem => {
+                    const containsProducts = products.some(product => elem.contains(product));
+                    if (!containsProducts) {
+                        elem.remove();
                     }
                 });
             });
-        """)
+
+            // Remove promotional content
+            document.querySelectorAll('section, div, aside').forEach(elem => {
+                const containsProducts = products.some(product => elem.contains(product));
+                const text = elem.textContent.toLowerCase();
+                const isPromotional = text.includes('shop now') || text.includes('subscribe') ||
+                                     text.includes('newsletter') || text.includes('follow us') ||
+                                     text.includes('contact') || text.includes('about');
+
+                if (!containsProducts && (isPromotional || elem.children.length === 0)) {
+                    elem.remove();
+                }
+            });
+        """, products)
 
         # Extract products with >25% discount
         high_discount_products = []
